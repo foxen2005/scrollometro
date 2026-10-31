@@ -14,6 +14,15 @@ const PRIVACY: [string, string][] = [
   ['✅', 'Lo apagas cuando quieras en Accesibilidad.'],
 ];
 
+// Pasos con los textos tal como los muestra Android (pueden variar un poco según la marca)
+const SETUP_STEPS: [string, string][] = [
+  ['1', 'Toca «Activar». Se abre Accesibilidad: entra a «Apps instaladas» (o «Servicios descargados») → Scrollómetro.'],
+  ['2', 'Activa el interruptor y acepta el aviso de Android.'],
+  ['3', 'Si sale «Controlado por la configuración restringida», toca Aceptar y luego «Info de la app» (aquí abajo).'],
+  ['4', 'En Info de la app toca el menú ⋮ (arriba a la derecha) → «Permitir ajustes restringidos» y confirma con tu huella o PIN.'],
+  ['5', 'Vuelve a Accesibilidad y repite el paso 2. Al volver aquí, esta pantalla se va sola. 🎉'],
+];
+
 /**
  * Bienvenida: explica por qué se necesita Accesibilidad y qué NO hace la app con tus datos.
  * mode "setup": al abrir sin el servicio activado (desaparece sola al activarlo).
@@ -57,22 +66,40 @@ export function Bienvenida({ mode, onClose }: { mode: 'setup' | 'info'; onClose:
         </FadeInUp>
 
         {mode === 'setup' ? (
-          <FadeInUp index={3}>
-            <Card>
-              <Txt w="black" style={styles.h}>Cómo activarlo</Txt>
-              <Txt w="medium" style={styles.p}>1. Toca «Activar» → Apps instaladas → Scrollómetro → activar.</Txt>
-              <Txt w="medium" style={styles.p}>
-                2. Si el interruptor sale bloqueado: toca «Info de la app» → menú ⋮ → «Permitir ajustes restringidos» y repite el paso 1.
-              </Txt>
-              <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-                <Btn label="Activar" kind="lime" onPress={() => ScrollTracker.openAccessibilitySettings()} />
-                <Btn label="Info de la app" kind="ghost" onPress={() => ScrollTracker.openAppDetails()} />
-              </View>
-            </Card>
-            <PressScale onPress={onClose} style={styles.skip}>
-              <Txt w="bold" style={{ color: C.muted }}>Ver la app primero</Txt>
-            </PressScale>
-          </FadeInUp>
+          <>
+            <FadeInUp index={3}>
+              <Card>
+                <Txt w="black" style={styles.h}>Cómo activarlo</Txt>
+                {SETUP_STEPS.map(([n, text]) => (
+                  <View key={n} style={styles.step}>
+                    <View style={styles.num}><Txt w="black" style={{ fontSize: 14, lineHeight: 18 }}>{n}</Txt></View>
+                    <Txt w="medium" style={[styles.p, { flex: 1 }]}>{text}</Txt>
+                  </View>
+                ))}
+                <View style={{ flexDirection: 'row', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+                  <Btn label="Activar" kind="lime" onPress={() => ScrollTracker.openAccessibilitySettings()} />
+                  <Btn label="Info de la app" kind="ghost" onPress={() => ScrollTracker.openAppDetails()} />
+                </View>
+              </Card>
+            </FadeInUp>
+
+            <FadeInUp index={4}>
+              <Card>
+                <Txt w="black" style={styles.h}>¿Play Protect te avisó al instalar? 🛡️</Txt>
+                <Txt w="medium" style={styles.p}>
+                  Es normal: Google revisa con lupa toda app que pide Accesibilidad, porque es el mismo permiso que usan las
+                  apps peligrosas. Por eso arriba te contamos exactamente qué hace y qué no.
+                </Txt>
+                <Txt w="medium" style={[styles.p, { marginTop: 6 }]}>
+                  Si lo apagaste para instalar, vuelve a encenderlo: Play Store → tu foto → Play Protect → ⚙️ → «Analizar
+                  apps con Play Protect».
+                </Txt>
+              </Card>
+              <PressScale onPress={onClose} style={styles.skip}>
+                <Txt w="bold" style={{ color: C.muted }}>Ver la app primero</Txt>
+              </PressScale>
+            </FadeInUp>
+          </>
         ) : (
           <FadeInUp index={3}>
             <Btn label="Entendido" kind="lime" onPress={onClose} />
@@ -97,5 +124,10 @@ const styles = StyleSheet.create({
   h: { fontSize: 19, lineHeight: 25, marginBottom: 4 },
   p: { fontSize: 15, lineHeight: 22 },
   row: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', paddingVertical: 2 },
+  step: { flexDirection: 'row', gap: 10, alignItems: 'flex-start', paddingVertical: 4 },
+  num: {
+    width: 26, height: 26, borderRadius: 13, borderWidth: 2, borderColor: C.ink, backgroundColor: C.sun,
+    alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  },
   skip: { alignSelf: 'center', paddingVertical: 12, paddingHorizontal: 16 },
 });
