@@ -688,15 +688,40 @@ const APPS = [
   ['YouTube', 'Y', '#d4002b', 0.12, '#ff0033'],
   ['X', 'X', '#000', 0.05, '#555'],
 ];
+// Lista de logros de Jean (2026-10-31), de menor a mayor. Distancias aproximadas, en metros.
 const MEDALS = [
   ['👆', 'Primer toque', 0.01],
+  ['✏️', 'Lápiz nuevo', 0.19],
+  ['🎸', 'Guitarra completa', 1],
+  ['🦒', 'Cuello de jirafa', 5.5],
+  ['🚌', 'Bus de dos pisos', 10],
+  ['🐋', 'Ballena azul', 30],
+  ['🗽', 'Estatua de la Libertad', 93],
   ['⚽', 'Cancha completa', 105],
   ['🏙️', 'Gran Torre Santiago', 300],
+  ['🗼', 'Torre Eiffel', 330],
+  ['🌇', 'Burj Khalifa', 828],
   ['🦶', 'Kilómetro de pulgar', 1000],
+  ['🌉', 'Puente Golden Gate', 2700],
+  ['🗻', 'Monte Fuji', 3800],
+  ['⛰️', 'Aconcagua', 6960],
   ['🏔️', 'Everest con el dedo', 8849],
+  ['🤿', 'Fosa de las Marianas', 10900],
+  ['🏊', 'Canal de la Mancha', 33000],
   ['🏃', 'Maratón del pulgar', 42195],
+  ['🚀', 'Hasta el espacio', 100000],
   ['🌊', 'Santiago–Valpo', 116000],
+  ['🚄', 'Londres–París', 344000],
+  ['🚆', 'Madrid–Barcelona', 620000],
+  ['🐚', 'Camino de Santiago', 800000],
   ['🌲', 'Rumbo a Puerto Montt', 1030000],
+  ['🛣️', 'Ruta 66', 3940000],
+  ['🦜', 'Río Amazonas', 6400000],
+  ['🚂', 'Transiberiano', 9289000],
+  ['🧱', 'Gran Muralla China', 21196000],
+  ['🌎', 'Panamericana completa', 30000000],
+  ['🌍', 'Vuelta al mundo', 40075000],
+  ['🌕', 'Hasta la Luna', 384400000],
 ];
 
 // ---------- Estado de la maqueta ----------
@@ -813,8 +838,8 @@ function render(opts = {}) {
 
   // Logros (histórico falso: lo de hoy + lo acumulado antes)
   const hist = m * 9 + 6400;
-  $('[data-hist]').forEach((el) => (el.textContent = `histórico: ${fmtDist(hist)}`));
   const unlocked = MEDALS.filter(([, , need]) => hist >= need).map(([, t]) => t);
+  $('[data-hist]').forEach((el) => (el.textContent = `histórico: ${fmtDist(hist)} · ${unlocked.length}/${MEDALS.length}`));
   $('[data-medals]').forEach((el) => {
     el.innerHTML = MEDALS.map(([em, t, need]) => {
       const on = hist >= need;
