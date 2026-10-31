@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget 2×2: mascota, distancia y mini barra de dopamina -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/widget_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/widget_bg"
+  android:gravity="center_horizontal"
+  android:orientation="vertical"
+  android:paddingStart="12dp"
+  android:paddingTop="10dp"
+  android:paddingEnd="16dp"
+  android:paddingBottom="16dp">
+
+  <ImageView
+    android:id="@+id/widget_mascot"
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1"
+    android:contentDescription="@string/scroll_widget_mascot"
+    android:scaleType="fitCenter"
+    android:src="@drawable/mascot_pulgar_0" />
+
+  <TextView
+    android:id="@+id/widget_distance"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:fontFamily="sans-serif-black"
+    android:text="0 cm"
+    android:textColor="#23192E"
+    android:textSize="22sp" />
+
+  <ProgressBar
+    android:id="@+id/widget_dopa"
+    style="?android:attr/progressBarStyleHorizontal"
+    android:layout_width="match_parent"
+    android:layout_height="9dp"
+    android:layout_marginTop="4dp"
+    android:max="100"
+    android:progress="0"
+    android:progressDrawable="@drawable/widget_dopa_progress" />
+</LinearLayout>

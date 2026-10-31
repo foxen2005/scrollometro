@@ -23,5 +23,29 @@
         android:name="android.accessibilityservice"
         android:resource="@xml/scroll_tracker_service" />
     </service>
+
+    <receiver
+      android:name="cl.digitalfox.scrolltracker.ScrollWidgetSmall"
+      android:exported="false"
+      android:label="@string/scroll_widget_small_label">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/scroll_widget_small_info" />
+    </receiver>
+
+    <receiver
+      android:name="cl.digitalfox.scrolltracker.ScrollWidgetWide"
+      android:exported="false"
+      android:label="@string/scroll_widget_wide_label">
+      <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+      </intent-filter>
+      <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/scroll_widget_wide_info" />
+    </receiver>
   </application>
 </manifest>

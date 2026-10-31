@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "nested-cards",
+        "value": "*",
+        "files": [
+          "maqueta/index.html"
+        ],
+        "createdAt": "2026-10-31T20:25:29.350Z",
+        "reason": "Jean aprobó la maqueta tal cual (buenísimo todo / sin cambiar lo que ya hiciste); las opciones de mascota dentro de la tarjeta de Ajustes son botones seleccionables a propósito"
+      },
+      {
+        "rule": "tight-leading",
+        "value": "*",
+        "files": [
+          "maqueta/index.html"
+        ],
+        "createdAt": "2026-10-31T20:25:29.661Z",
+        "reason": "Jean pidió corregir solo el globo y los títulos de medalla (hecho); lo que queda es texto de una línea (números grandes, nombres de app) en la maqueta aprobada"
+      }
+    ]
+  }
+}

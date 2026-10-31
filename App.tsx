@@ -1,35 +1,63 @@
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, PermissionsAndroid, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Alert,
-  AppState,
-  PermissionsAndroid,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import ScrollTracker, { formatCm, type ScrollEvent, type Stats } from './modules/scroll-tracker';
+  useFonts,
+  Baloo2_500Medium,
+  Baloo2_600SemiBold,
+  Baloo2_700Bold,
+  Baloo2_800ExtraBold,
+} from '@expo-google-fonts/baloo-2';
+import ScrollTracker, { type ScrollEvent, type Stats } from './modules/scroll-tracker';
+import { PressScale, ReduceMotionProvider, Txt } from './src/components/ui';
+import { Hoy } from './src/screens/Hoy';
+import { Logros } from './src/screens/Logros';
+import { Ajustes, type Prefs, type PrefsUpdate } from './src/screens/Ajustes';
+import { Compartir } from './src/screens/Compartir';
+import { Bienvenida } from './src/screens/Bienvenida';
+import { BORDER, C } from './src/theme';
 
-const METHOD_LABEL: Record<string, string> = {
-  DELTA: 'delta',
-  SCROLL_Y: 'posición',
-  INDEX: 'índice',
-  NONE: 'sin datos',
-};
+type Tab = 'hoy' | 'logros' | 'ajustes';
+const TABS: [Tab, string, string][] = [
+  ['hoy', '🏠', 'Hoy'],
+  ['logros', '🏆', 'Logros'],
+  ['ajustes', '⚙️', 'Ajustes'],
+];
 
 export default function App() {
-  const [enabled, setEnabled] = useState(false);
+  const [fontsLoaded] = useFonts({ Baloo2_500Medium, Baloo2_600SemiBold, Baloo2_700Bold, Baloo2_800ExtraBold });
+  return (
+    <SafeAreaProvider>
+      <ReduceMotionProvider>
+        <StatusBar style="dark" />
+        {fontsLoaded ? <Main /> : <View style={{ flex: 1, backgroundColor: C.bg }} />}
+      </ReduceMotionProvider>
+    </SafeAreaProvider>
+  );
+}
+
+function Main() {
+  const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState<Tab>('hoy');
   const [stats, setStats] = useState<Stats | null>(null);
+  const [enabled, setEnabled] = useState(false);
   const [events, setEvents] = useState<ScrollEvent[]>([]);
-  const [showLog, setShowLog] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [skipSetup, setSkipSetup] = useState(false); // "Ver la app primero" (solo esta sesión)
+  const [showPrivacy, setShowPrivacy] = useState(false);
+
+  const tabRef = useRef<Tab>('hoy');
+  tabRef.current = tab;
+  const prefsRef = useRef<Prefs | null>(null);
 
   const refresh = useCallback(() => {
+    const s = ScrollTracker.getStats();
+    prefsRef.current = { goalM: s.goalM, notifEnabled: s.notifEnabled, phrases: s.phrases, mascot: s.mascot };
+    setStats(s);
     setEnabled(ScrollTracker.isServiceEnabled());
-    setStats(ScrollTracker.getStats());
-    setEvents(ScrollTracker.getEvents());
+    // El log crudo solo se muestra en Ajustes: no traer 60 eventos por segundo en las otras pestañas
+    if (tabRef.current === 'ajustes') setEvents(ScrollTracker.getEvents());
   }, []);
 
   useEffect(() => {
@@ -45,111 +73,62 @@ export default function App() {
     };
   }, [refresh]);
 
-  const confirmReset = () =>
-    Alert.alert('Reiniciar', '¿Borrar la distancia de hoy?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Borrar', style: 'destructive', onPress: () => { ScrollTracker.reset(); refresh(); } },
-    ]);
+  // Al entrar a Ajustes, traer el log de inmediato (no esperar al siguiente segundo)
+  useEffect(() => {
+    if (tab === 'ajustes') refresh();
+  }, [tab, refresh]);
+
+  const setPrefs = (update: PrefsUpdate) => {
+    const cur = prefsRef.current;
+    if (!cur) return;
+    const next = { ...cur, ...update(cur) };
+    prefsRef.current = next;
+    ScrollTracker.setPrefs(next.goalM, next.notifEnabled, next.phrases, next.mascot);
+    refresh();
+  };
+  const reset = () => {
+    ScrollTracker.reset();
+    refresh();
+  };
+
+  if (!stats) return <View style={{ flex: 1, backgroundColor: C.bg }} />;
+
+  // Bienvenida mientras el servicio no esté activado (se va sola al activarlo) o desde Ajustes → Privacidad
+  if (showPrivacy) return <Bienvenida mode="info" onClose={() => setShowPrivacy(false)} />;
+  if (!enabled && !skipSetup) return <Bienvenida mode="setup" onClose={() => setSkipSetup(true)} />;
 
   return (
-    <View style={styles.root}>
-      <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Scrollómetro</Text>
-
-        {!enabled && (
-          <View style={[styles.card, styles.warn]}>
-            <Text style={styles.cardTitle}>Activa el servicio</Text>
-            <Text style={styles.muted}>
-              Ajustes → Accesibilidad → Apps instaladas → Scrollómetro → activar.{'\n'}
-              Si el interruptor sale bloqueado: Info de la app → menú ⋮ → «Permitir ajustes restringidos».
-            </Text>
-            <View style={styles.row}>
-              <Btn label="Abrir accesibilidad" onPress={ScrollTracker.openAccessibilitySettings} />
-              <Btn label="Info de la app" onPress={ScrollTracker.openAppDetails} ghost />
-            </View>
-          </View>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      {/* key por pestaña: cada pantalla entra con su cascada al abrirla */}
+      <ScrollView key={tab} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {tab === 'hoy' && <Hoy stats={stats} onShare={() => setSharing(true)} onSettings={() => setTab('ajustes')} />}
+        {tab === 'logros' && <Logros histCm={stats.histCm} />}
+        {tab === 'ajustes' && (
+          <Ajustes stats={stats} enabled={enabled} events={events} onPrefs={setPrefs} onReset={reset} onPrivacy={() => setShowPrivacy(true)} />
         )}
-
-        <View style={styles.card}>
-          <Text style={styles.muted}>Hoy scrolleaste</Text>
-          <Text style={styles.big}>{formatCm(stats?.totalCm ?? 0)}</Text>
-          <Text style={styles.small}>
-            {enabled ? '● midiendo' : '○ servicio apagado'} · {stats?.day}
-          </Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Por app</Text>
-          {(stats?.apps.length ?? 0) === 0 && (
-            <Text style={styles.muted}>Todavía nada. Abre TikTok o Instagram y haz scroll.</Text>
-          )}
-          {stats?.apps.map((a) => (
-            <View key={a.pkg} style={styles.appRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.appName}>{a.label}</Text>
-                <Text style={styles.small}>
-                  delta {a.delta} · posición {a.scrollY} · índice {a.index} · sin datos {a.none}
-                </Text>
-              </View>
-              <Text style={styles.appCm}>{formatCm(a.cm)}</Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.card}>
-          <Pressable onPress={() => setShowLog((v) => !v)}>
-            <Text style={styles.cardTitle}>
-              {showLog ? '▾' : '▸'} Eventos crudos ({events.length})
-            </Text>
-          </Pressable>
-          {showLog &&
-            events.map((e, i) => (
-              <Text key={`${e.time}-${i}`} style={styles.log}>
-                {new Date(e.time).toLocaleTimeString()} {e.label} [{e.cls}] {METHOD_LABEL[e.method]}{' '}
-                dy={e.dy} y={e.scrollY} idx={e.fromIndex}-{e.toIndex}/{e.itemCount} → {e.cm.toFixed(1)} cm
-              </Text>
-            ))}
-        </View>
-
-        {stats && (
-          <Text style={styles.small}>
-            Calibración: ydpi {stats.ydpi.toFixed(0)} · usado {stats.usedDpi.toFixed(0)} dpi · alto{' '}
-            {stats.screenHeightPx}px ({formatCm((stats.screenHeightPx / stats.usedDpi) * 2.54)})
-          </Text>
-        )}
-
-        <Btn label="Reiniciar hoy" onPress={confirmReset} ghost />
       </ScrollView>
+
+      {/* Pestañas siempre por encima de la barra de gestos de Android */}
+      <View style={[styles.tabs, { paddingBottom: Math.max(insets.bottom, 6) }]}>
+        {TABS.map(([k, icon, label]) => (
+          <PressScale key={k} onPress={() => setTab(k)} style={styles.tab}>
+            <Txt style={{ fontSize: 20, lineHeight: 26, opacity: tab === k ? 1 : 0.45 }}>{icon}</Txt>
+            <Txt w="bold" style={{ fontSize: 12, lineHeight: 16, color: tab === k ? C.ink : C.muted }}>{label}</Txt>
+          </PressScale>
+        ))}
+      </View>
+
+      <Compartir visible={sharing} stats={stats} onClose={() => setSharing(false)} />
     </View>
   );
 }
 
-function Btn({ label, onPress, ghost }: { label: string; onPress: () => void; ghost?: boolean }) {
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.btn, ghost && styles.btnGhost, pressed && { opacity: 0.6 }]}>
-      <Text style={[styles.btnText, ghost && styles.btnGhostText]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0f1115' },
-  content: { padding: 20, paddingTop: 56, gap: 14 },
-  title: { color: '#fff', fontSize: 26, fontWeight: '800' },
-  card: { backgroundColor: '#1a1d24', borderRadius: 16, padding: 16, gap: 8 },
-  warn: { borderWidth: 1, borderColor: '#f5a524' },
-  cardTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  muted: { color: '#a3a9b6', fontSize: 14, lineHeight: 20 },
-  small: { color: '#6b7280', fontSize: 12 },
-  big: { color: '#7cf29c', fontSize: 52, fontWeight: '900' },
-  row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
-  appRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, gap: 10 },
-  appName: { color: '#e5e7eb', fontSize: 15, fontWeight: '600' },
-  appCm: { color: '#7cf29c', fontSize: 17, fontWeight: '800' },
-  log: { color: '#9ca3af', fontSize: 11, fontFamily: 'monospace' },
-  btn: { backgroundColor: '#7cf29c', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, alignSelf: 'flex-start' },
-  btnGhost: { backgroundColor: 'transparent', borderWidth: 1, borderColor: '#3a3f4b' },
-  btnText: { color: '#0f1115', fontWeight: '700' },
-  btnGhostText: { color: '#e5e7eb' },
+  root: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 16, paddingTop: 10, gap: 14 },
+  tabs: {
+    flexDirection: 'row', justifyContent: 'space-around', paddingTop: 8, paddingHorizontal: 14,
+    borderTopWidth: BORDER, borderColor: C.ink, backgroundColor: '#fff',
+  },
+  tab: { alignItems: 'center', paddingHorizontal: 18 },
 });

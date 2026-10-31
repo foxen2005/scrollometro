@@ -21,7 +21,17 @@ export type Stats = {
   usedDpi: number;
   screenHeightPx: number;
   serviceRunning: boolean;
+  /** Acumulado de toda la vida, para los logros */
+  histCm: number;
+  /** 0–100, ritmo de scroll de los últimos 10 min (lúdico) */
+  dopamine: number;
+  goalM: number;
+  notifEnabled: boolean;
+  phrases: boolean;
+  mascot: MascotKey;
 };
+
+export type MascotKey = 'pulgar' | 'caracol' | 'cerebro';
 
 export type ScrollEvent = {
   time: number;
@@ -44,12 +54,7 @@ type ScrollTrackerNative = {
   getStats(): Stats;
   getEvents(): ScrollEvent[];
   reset(): void;
+  setPrefs(goalM: number, notifEnabled: boolean, phrases: boolean, mascot: MascotKey): void;
 };
 
 export default requireNativeModule<ScrollTrackerNative>('ScrollTracker');
-
-export function formatCm(cm: number): string {
-  if (cm < 100) return `${Math.round(cm)} cm`;
-  if (cm < 100_000) return `${(cm / 100).toFixed(1).replace('.', ',')} m`;
-  return `${(cm / 100_000).toFixed(2).replace('.', ',')} km`;
-}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget 4×2: mascota a la izquierda; distancia, frase y barra de dopamina a la derecha -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/widget_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/widget_bg"
+  android:gravity="center_vertical"
+  android:orientation="horizontal"
+  android:paddingStart="10dp"
+  android:paddingTop="10dp"
+  android:paddingEnd="16dp"
+  android:paddingBottom="14dp">
+
+  <ImageView
+    android:id="@+id/widget_mascot"
+    android:layout_width="96dp"
+    android:layout_height="match_parent"
+    android:contentDescription="@string/scroll_widget_mascot"
+    android:scaleType="fitCenter"
+    android:src="@drawable/mascot_pulgar_0" />
+
+  <LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_weight="1"
+    android:orientation="vertical">
+
+    <TextView
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fontFamily="sans-serif-medium"
+      android:text="@string/scroll_widget_today"
+      android:textColor="#5F5570"
+      android:textSize="12sp" />
+
+    <TextView
+      android:id="@+id/widget_distance"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:fontFamily="sans-serif-black"
+      android:includeFontPadding="false"
+      android:text="0 cm"
+      android:textColor="#23192E"
+      android:textSize="30sp" />
+
+    <TextView
+      android:id="@+id/widget_line"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="2dp"
+      android:fontFamily="sans-serif-medium"
+      android:lineSpacingMultiplier="1.15"
+      android:maxLines="2"
+      android:textColor="#23192E"
+      android:textSize="13sp" />
+
+    <ProgressBar
+      android:id="@+id/widget_dopa"
+      style="?android:attr/progressBarStyleHorizontal"
+      android:layout_width="match_parent"
+      android:layout_height="9dp"
+      android:layout_marginTop="6dp"
+      android:max="100"
+      android:progress="0"
+      android:progressDrawable="@drawable/widget_dopa_progress" />
+  </LinearLayout>
+</LinearLayout>

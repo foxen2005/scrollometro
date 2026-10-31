@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Barra de dopamina del widget: el degradado lima→sol→tomate se destapa según el progreso -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@android:id/background">
+    <shape android:shape="rectangle">
+      <solid android:color="#F1ECF5" />
+      <stroke android:width="2dp" android:color="#23192E" />
+      <corners android:radius="99dp" />
+    </shape>
+  </item>
+  <item android:id="@android:id/progress">
+    <clip>
+      <shape android:shape="rectangle">
+        <gradient
+          android:angle="0"
+          android:startColor="#C6F45E"
+          android:centerColor="#FFD24A"
+          android:endColor="#FF6B57" />
+        <stroke android:width="2dp" android:color="#23192E" />
+        <corners android:radius="99dp" />
+      </shape>
+    </clip>
+  </item>
+</layer-list>

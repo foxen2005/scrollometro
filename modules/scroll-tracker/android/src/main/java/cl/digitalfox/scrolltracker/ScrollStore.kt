@@ -63,6 +63,35 @@ object ScrollStore {
   private val lastFromIndex = HashMap<String, Int>()
   private val labels = HashMap<String, String>()
   private var serviceRunning = false
+
+  // Acumulado de toda la vida (para los logros) y ritmo reciente (para la barra de dopamina)
+  private var histCm = 0.0
+  private const val BUCKET_MS = 10_000L
+  private const val DOPA_WINDOW_MS = 10 * 60_000L
+  /** Pantallas por minuto que equivalen a la barra llena (≈ un video cada 4 s). */
+  private const val DOPA_FULL_SCREENS_PER_MIN = 15.0
+  private val buckets = ArrayDeque<Pair<Long, Double>>() // (inicio del tramo de 10 s, cm)
+
+  // Preferencias que se eligen en Ajustes
+  private var goalM = 500
+  private var notifEnabled = true
+  private var phrases = true
+  private var mascot = "pulgar"
+
+  /** Frases de la mascota por estado (<100 m, <500 m, <2 km, más). Mismas que en la app. */
+  private val MASCOT_LINES = mapOf(
+    "pulgar" to listOf("¡Listo pa’l día! 💪", "Uff… ¿otro video más?", "No siento la uña. Ayuda.", "Braaains… digo, reels…"),
+    "caracol" to listOf("Wow, ¡qué rapidez!", "Yo hago eso en 3 días…", "No te hablo.", "Nunca seré tan rápido 😭"),
+    "cerebro" to listOf("Todo bajo control 😌", "Se está poniendo tibio esto…", "¿Huele a quemado o soy yo?", "Listo pa’ la marraqueta 🍳")
+  )
+  private val STAGE_EMOJI = listOf("💪", "😅", "🥵", "🧟")
+  private fun stageOf(cm: Double): Int = when {
+    cm < 10_000 -> 0
+    cm < 50_000 -> 1
+    cm < 200_000 -> 2
+    else -> 3
+  }
+
   private var dirty = false
   private var flushScheduled = false
   private val handler = Handler(Looper.getMainLooper())
@@ -132,6 +161,8 @@ object ScrollStore {
     val total = totals.getOrPut(pkg) { AppTotal() }
     total.cm += cm
     total.counts[method.ordinal]++
+    histCm += cm
+    addToBucket(cm)
 
     events.addFirst(Event(System.currentTimeMillis(), pkg, cls, dy, e.scrollY, e.fromIndex, e.toIndex, e.itemCount, method, cm))
     while (events.size > MAX_EVENTS) events.removeLast()
@@ -183,8 +214,49 @@ object ScrollStore {
       "ydpi" to dm.ydpi.toDouble(),
       "usedDpi" to usedDpi(),
       "screenHeightPx" to dm.heightPixels,
-      "serviceRunning" to serviceRunning
+      "serviceRunning" to serviceRunning,
+      "histCm" to histCm,
+      "dopamine" to dopamine(),
+      "goalM" to goalM,
+      "notifEnabled" to notifEnabled,
+      "phrases" to phrases,
+      "mascot" to mascot
     )
+  }
+
+  /** Lo que muestran los widgets. */
+  class WidgetState(val mascot: String, val stage: Int, val distance: String, val line: String, val dopamine: Int, val openApp: PendingIntent?)
+
+  @Synchronized
+  fun widgetState(): WidgetState {
+    rollDayIfNeeded()
+    val total = totals.values.sumOf { it.cm }
+    val stage = stageOf(total)
+    return WidgetState(
+      mascot = mascot,
+      stage = stage,
+      distance = formatCm(total),
+      line = MASCOT_LINES[mascot]?.get(stage) ?: "",
+      dopamine = dopamine(),
+      openApp = openAppIntent()
+    )
+  }
+
+  private fun openAppIntent(): PendingIntent? =
+    appContext.packageManager.getLaunchIntentForPackage(appContext.packageName)?.let {
+      PendingIntent.getActivity(appContext, 0, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    }
+
+  /** Guarda las preferencias de Ajustes y refresca (u oculta) la notificación. */
+  @Synchronized
+  fun setPrefs(goal: Int, notif: Boolean, withPhrases: Boolean, mascotKey: String) {
+    goalM = goal.coerceIn(10, 1_000_000)
+    notifEnabled = notif
+    phrases = withPhrases
+    if (MASCOT_LINES.containsKey(mascotKey)) mascot = mascotKey
+    savePrefs()
+    if (notifEnabled) postNotification() else NotificationManagerCompat.from(appContext).cancel(NOTIF_ID)
+    ScrollWidgets.updateAll(appContext) // la mascota del widget cambia al elegir otra
   }
 
   @Synchronized
@@ -206,12 +278,17 @@ object ScrollStore {
 
   @Synchronized
   fun reset() {
+    rollDayIfNeeded()
+    // "Reiniciar hoy" también descuenta lo de hoy del histórico, para no dejar logros inflados
+    histCm = maxOf(0.0, histCm - totals.values.sumOf { it.cm })
     totals.clear()
     events.clear()
+    buckets.clear()
     lastScrollY.clear()
     lastFromIndex.clear()
     save()
     postNotification()
+    ScrollWidgets.updateAll(appContext)
   }
 
   // ---------- Internos ----------
@@ -222,6 +299,32 @@ object ScrollStore {
     val ydpi = dm.ydpi.toDouble()
     val density = dm.densityDpi.toDouble()
     return if (ydpi < density * 0.75 || ydpi > density * 1.33) density else ydpi
+  }
+
+  private fun addToBucket(cm: Double) {
+    val start = System.currentTimeMillis() / BUCKET_MS * BUCKET_MS
+    val last = buckets.lastOrNull()
+    if (last != null && last.first == start) buckets[buckets.size - 1] = start to last.second + cm
+    else buckets.addLast(start to cm)
+    pruneBuckets()
+  }
+
+  private fun pruneBuckets() {
+    val cutoff = System.currentTimeMillis() - DOPA_WINDOW_MS
+    // Se descarta un tramo solo cuando termina antes del corte (los que se solapan con la ventana se conservan)
+    while (buckets.isNotEmpty() && buckets.first().first + BUCKET_MS <= cutoff) buckets.removeFirst()
+  }
+
+  /**
+   * "Barra de dopamina" (lúdica): pantallas recorridas por minuto en los últimos 10 min,
+   * escalado a 0–100 donde 100 ≈ un video cada 4 segundos.
+   */
+  private fun dopamine(): Int {
+    pruneBuckets()
+    val dm = appContext.resources.displayMetrics
+    val screenCm = dm.heightPixels / usedDpi() * 2.54
+    val screensPerMin = buckets.sumOf { it.second } / screenCm / (DOPA_WINDOW_MS / 60_000.0)
+    return (screensPerMin / DOPA_FULL_SCREENS_PER_MIN * 100).roundToInt().coerceIn(0, 100)
   }
 
   private fun today(): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
@@ -251,6 +354,7 @@ object ScrollStore {
     dirty = false
     save()
     postNotification()
+    ScrollWidgets.updateAll(appContext)
   }
 
   private fun label(pkg: String): String = labels.getOrPut(pkg) {
@@ -264,6 +368,14 @@ object ScrollStore {
 
   private fun load() {
     val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+    // Histórico y preferencias no dependen del día
+    histCm = java.lang.Double.longBitsToDouble(prefs.getLong("histCmBits", 0L))
+    goalM = prefs.getInt("goalM", 500)
+    notifEnabled = prefs.getBoolean("notifEnabled", true)
+    phrases = prefs.getBoolean("phrases", true)
+    // Validar: una clave desconocida (versión futura, backup restaurado) haría caer la app en JS
+    mascot = prefs.getString("mascot", "pulgar")?.takeIf { MASCOT_LINES.containsKey(it) } ?: "pulgar"
+
     val json = prefs.getString("data", null)
     day = today()
     if (json == null) return
@@ -290,11 +402,23 @@ object ScrollStore {
       apps.put(pkg, JSONObject().put("cm", t.cm).put("c", JSONArray(t.counts.toList())))
     }
     val root = JSONObject().put("day", day).put("apps", apps)
-    appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString("data", root.toString()).apply()
+    appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+      .putString("data", root.toString())
+      .putLong("histCmBits", java.lang.Double.doubleToRawLongBits(histCm))
+      .apply()
+  }
+
+  private fun savePrefs() {
+    appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+      .putInt("goalM", goalM)
+      .putBoolean("notifEnabled", notifEnabled)
+      .putBoolean("phrases", phrases)
+      .putString("mascot", mascot)
+      .apply()
   }
 
   private fun postNotification() {
-    if (!serviceRunning) return
+    if (!serviceRunning || !notifEnabled) return
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
       appContext.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
     ) return
@@ -316,18 +440,23 @@ object ScrollStore {
     val top = totals.entries
       .filter { it.value.cm >= 1.0 }
       .sortedByDescending { it.value.cm }
-      .take(3)
+      .take(if (phrases) 2 else 3)
       .joinToString(" · ") { "${label(it.key)} ${formatCm(it.value.cm)}" }
-
-    val launch = appContext.packageManager.getLaunchIntentForPackage(appContext.packageName)
-    val contentIntent = launch?.let {
-      PendingIntent.getActivity(appContext, 0, it, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+    val stage = stageOf(total)
+    val line = MASCOT_LINES[mascot]?.get(stage)
+    val text = when {
+      top.isEmpty() -> "Haz scroll en cualquier app…"
+      phrases && line != null -> "$top — $line"
+      else -> top
     }
+
+    val contentIntent = openAppIntent()
 
     val notification = NotificationCompat.Builder(appContext, CHANNEL_ID)
       .setSmallIcon(R.drawable.ic_stat_scroll)
-      .setContentTitle("Hoy scrolleaste ${formatCm(total)}")
-      .setContentText(top.ifEmpty { "Haz scroll en cualquier app…" })
+      .setContentTitle("Hoy scrolleaste ${formatCm(total)} ${STAGE_EMOJI[stage]}")
+      .setContentText(text)
+      .setStyle(NotificationCompat.BigTextStyle().bigText(text))
       .setOngoing(true)
       .setOnlyAlertOnce(true)
       .setSilent(true)
@@ -346,9 +475,19 @@ object ScrollStore {
 
   private val clLocale: Locale = Locale.forLanguageTag("es-CL")
 
-  fun formatCm(cm: Double): String = when {
-    cm < 100 -> "${cm.roundToInt()} cm"
-    cm < 100_000 -> String.format(clLocale, "%.1f m", cm / 100)
-    else -> String.format(clLocale, "%.2f km", cm / 100_000)
+  /** Mismo formato que fmtDist en la app (src/lib/content.ts): "51 cm", "5,5 m", "180 m", "1,3 km". */
+  private fun nf(x: Double, maxDecimals: Int): String =
+    java.text.NumberFormat.getNumberInstance(clLocale).apply {
+      maximumFractionDigits = maxDecimals
+      minimumFractionDigits = 0
+    }.format(x)
+
+  fun formatCm(cm: Double): String {
+    val m = cm / 100
+    return when {
+      m < 1 -> "${cm.roundToInt()} cm"
+      m < 1000 -> "${nf(m, if (m < 10) 1 else 0)} m"
+      else -> "${nf(m / 1000, if (m < 10_000) 2 else 1)} km"
+    }
   }
 }

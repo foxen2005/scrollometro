@@ -2,4 +2,10 @@
 <resources>
   <string name="scroll_tracker_label">Scrollómetro</string>
   <string name="scroll_tracker_description">Mide cuántos centímetros, metros o kilómetros recorres haciendo scroll en otras apps. Solo registra la distancia del movimiento; no lee ni guarda el contenido de la pantalla.</string>
+  <string name="scroll_widget_small_label">Scrollómetro</string>
+  <string name="scroll_widget_wide_label">Scrollómetro (ancho)</string>
+  <string name="scroll_widget_small_desc">Tu mascota y lo que llevas scrolleado hoy</string>
+  <string name="scroll_widget_wide_desc">Mascota, distancia de hoy, frase y barra de dopamina</string>
+  <string name="scroll_widget_today">Hoy scrolleaste</string>
+  <string name="scroll_widget_mascot">Mascota del Scrollómetro</string>
 </resources>

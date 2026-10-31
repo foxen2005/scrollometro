@@ -48,5 +48,10 @@ class ScrollTrackerModule : Module() {
       ScrollStore.ensureLoaded(context)
       ScrollStore.reset()
     }
+
+    Function("setPrefs") { goalM: Int, notifEnabled: Boolean, phrases: Boolean, mascot: String ->
+      ScrollStore.ensureLoaded(context)
+      ScrollStore.setPrefs(goalM, notifEnabled, phrases, mascot)
+    }
   }
 }
