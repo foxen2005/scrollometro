@@ -92,16 +92,20 @@ object ScrollStore {
       dy = e.scrollDeltaY
     }
 
+    // Android usa -1 como "sin dato", pero -1 también es un delta real (1 px hacia arriba):
+    // solo se considera "sin dato" cuando ambos ejes vienen en -1.
+    val hasDelta = !(dx == UNDEFINED && dy == UNDEFINED)
+
     var px = 0.0
     val method: Method
     when {
       // 1) Delta real informado por la vista (lo más preciso)
-      dy != UNDEFINED && dy != 0 -> {
+      hasDelta && dy != 0 -> {
         method = Method.DELTA
         px = abs(dy).toDouble()
       }
       // Scroll horizontal (carruseles, stories): no cuenta
-      dx != UNDEFINED && dx != 0 -> return
+      hasDelta && dx != 0 -> return
       // 2) Posición absoluta (ScrollView / Compose): diferencia con la anterior
       e.maxScrollY > 0 && e.scrollY >= 0 -> {
         method = Method.SCROLL_Y
