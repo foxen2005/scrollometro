@@ -45,3 +45,6 @@ build-android.log
 
 # module build output
 modules/*/android/build/
+
+# APKs copiados para instalar
+*.apk
