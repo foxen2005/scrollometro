@@ -66,7 +66,8 @@ const styles = StyleSheet.create({
   },
   num: {
     fontFamily: F.black, fontSize: 64, lineHeight: 74, marginTop: 10, color: '#fff',
-    textShadowColor: C.ink, textShadowOffset: { width: 4, height: 4 }, textShadowRadius: 0,
+    // Android no dibuja la sombra con radio 0: 1 la deja casi dura, como en la maqueta
+    textShadowColor: C.ink, textShadowOffset: { width: 4, height: 4 }, textShadowRadius: 1,
   },
   sq: { marginTop: 6, backgroundColor: '#fff', borderWidth: 2.5, borderColor: C.ink, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 10 },
   dl: { backgroundColor: C.ink, borderRadius: 12, paddingVertical: 4, paddingHorizontal: 10, marginTop: 8 },
