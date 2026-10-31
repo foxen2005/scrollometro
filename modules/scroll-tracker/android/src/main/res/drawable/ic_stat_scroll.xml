@@ -1,0 +1,10 @@
+<!-- Icono de la notificación: flechas verticales (scroll) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24">
+  <path
+    android:fillColor="#FFFFFFFF"
+    android:pathData="M12,2L7,7h3.5v10H7l5,5 5,-5h-3.5V7H17z" />
+</vector>

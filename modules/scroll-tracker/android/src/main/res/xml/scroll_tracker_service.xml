@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Solo eventos de scroll y cambio de pantalla. Sin acceso al contenido (canRetrieveWindowContent=false):
+  la app nunca lee qué hay en pantalla, solo cuánto se movió.
+  notificationTimeout=0 para no perder eventos intermedios (cada uno trae su delta).
+-->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+  android:accessibilityEventTypes="typeViewScrolled|typeWindowStateChanged"
+  android:accessibilityFeedbackType="feedbackGeneric"
+  android:accessibilityFlags="flagDefault"
+  android:canRetrieveWindowContent="false"
+  android:notificationTimeout="0"
+  android:description="@string/scroll_tracker_description" />

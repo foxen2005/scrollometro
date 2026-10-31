@@ -1,0 +1,6 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["cl.digitalfox.scrolltracker.ScrollTrackerModule"]
+  }
+}
