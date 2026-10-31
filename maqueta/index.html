@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scrollómetro · maquetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fff4e4;
+    --ink: #23192e;
+    --card: #ffffff;
+    --lime: #c6f45e;
+    --tomato: #ff6b57;
+    --tomato-ink: #c4311d; /* tomate para texto sobre blanco (contraste AA) */
+    --sky: #8fd3ff;
+    --grape: #a88bff;
+    --sun: #ffd24a;
+    --pink: #ff9ec7;
+    --muted: #5f5570;
+    --line: 2.5px solid var(--ink);
+    --pop: 4px 4px 0 var(--ink);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Baloo 2', 'Fredoka', system-ui, sans-serif;
+    background: #e9e2f3;
+    color: var(--ink);
+    padding: 24px 24px 60px;
+  }
+  h1 { font-size: 28px; font-weight: 800; }
+  .sub { color: var(--muted); font-size: 15px; margin-bottom: 16px; }
+
+  /* ---------- Controles de la maqueta ---------- */
+  .controls {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center;
+    background: #fff; border: var(--line); border-radius: 18px; box-shadow: var(--pop);
+    padding: 12px 18px; margin-bottom: 28px;
+  }
+  .controls label { font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  .controls input[type=range] { width: 180px; accent-color: var(--tomato); }
+  .controls .val { min-width: 70px; font-weight: 800; color: var(--tomato-ink); }
+  .seg { display: flex; border: var(--line); border-radius: 12px; overflow: hidden; }
+  .seg button {
+    font: inherit; font-weight: 700; font-size: 14px; border: 0; background: #fff; padding: 4px 12px; cursor: pointer;
+  }
+  .seg button + button { border-left: var(--line); }
+  .seg button.on { background: var(--lime); }
+  .presets button {
+    font: inherit; font-size: 13px; font-weight: 700; border: 2px solid var(--ink); border-radius: 10px;
+    background: var(--bg); padding: 1px 8px; cursor: pointer; margin-left: 4px;
+  }
+
+  /* ---------- Galería de teléfonos ---------- */
+  .gallery { display: flex; flex-wrap: wrap; gap: 36px 32px; align-items: flex-start; }
+  figure { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  figcaption { font-weight: 800; font-size: 16px; }
+  figcaption small { display: block; font-weight: 500; color: var(--muted); font-size: 13px; text-align: center; }
+
+  .phone {
+    width: 340px; height: 736px; border-radius: 46px; background: #15121b; padding: 10px;
+    box-shadow: 0 18px 40px rgba(35, 25, 46, .25);
+  }
+  .screen {
+    position: relative; width: 100%; height: 100%; border-radius: 37px; overflow: hidden;
+    background: var(--bg); display: flex; flex-direction: column;
+  }
+  .statusbar {
+    height: 30px; flex: none; display: flex; justify-content: space-between; align-items: center;
+    padding: 0 22px; font-size: 13px; font-weight: 700;
+  }
+  .content { flex: 1; overflow-y: auto; padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 14px; }
+  .content::-webkit-scrollbar { width: 0; }
+  .content > * { flex-shrink: 0; } /* que las tarjetas no se aplasten cuando la pantalla scrollea */
+  .gesture { height: 22px; flex: none; display: grid; place-items: center; }
+  .gesture i { width: 110px; height: 5px; border-radius: 3px; background: var(--ink); opacity: .55; }
+
+  /* Navegación inferior: siempre por encima de la barra de gestos de Android */
+  .tabs {
+    flex: none; display: flex; justify-content: space-around; padding: 8px 14px 4px;
+    border-top: var(--line); background: #fff;
+  }
+  .tabs span { display: flex; flex-direction: column; align-items: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+  .tabs span b { font-size: 20px; line-height: 1.2; filter: grayscale(1); opacity: .6; }
+  .tabs span.on { color: var(--ink); }
+  .tabs span.on b { filter: none; opacity: 1; transform: translateY(-1px); }
+
+  .card { background: var(--card); border: var(--line); border-radius: 22px; box-shadow: var(--pop); padding: 14px; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; }
+  .topbar h2 { font-size: 24px; font-weight: 800; line-height: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700;
+    border: 2px solid var(--ink); border-radius: 999px; padding: 0 9px; background: #fff;
+  }
+  .iconbtn {
+    width: 38px; height: 38px; border-radius: 12px; border: var(--line); background: #fff; box-shadow: 2px 2px 0 var(--ink);
+    display: grid; place-items: center; font-size: 18px;
+  }
+
+  /* Mascota + globo */
+  .hero { position: relative; background: var(--sky); padding: 10px 12px 0; overflow: hidden; }
+  .hero.s1 { background: var(--sun); }
+  .hero.s2 { background: #ffb38a; }
+  .hero.s3 { background: #b9e39b; }
+  .hero .row { display: flex; align-items: flex-end; gap: 4px; }
+  .hero svg { width: 150px; height: 165px; flex: none; display: block; }
+  .bubble {
+    position: relative; align-self: flex-start; margin-top: 10px; background: #fff; border: var(--line);
+    border-radius: 16px; padding: 7px 11px; font-weight: 700; font-size: 14px; line-height: 1.2;
+  }
+  .bubble::after {
+    content: ''; position: absolute; left: -10px; bottom: 12px; width: 14px; height: 14px; background: #fff;
+    border-left: var(--line); border-bottom: var(--line); transform: rotate(45deg);
+  }
+  .stage {
+    position: absolute; right: 10px; bottom: 10px; background: var(--ink); color: #fff; border-radius: 999px;
+    font-size: 12px; font-weight: 700; padding: 1px 10px;
+  }
+
+  .total small { font-size: 14px; font-weight: 700; color: var(--muted); }
+  .total .big { font-size: 58px; font-weight: 800; line-height: .95; letter-spacing: -1px; }
+  .eq {
+    margin-top: 6px; font-weight: 700; font-size: 15px; background: var(--bg); border-radius: 12px; padding: 6px 10px;
+    min-height: 34px; transition: opacity .25s;
+  }
+  .eq.fade { opacity: 0; }
+
+  .meter { position: relative; height: 18px; border: var(--line); border-radius: 999px; overflow: hidden; background: #f1ecf5; }
+  .meter i { position: absolute; inset: 0 auto 0 0; border-radius: 999px; }
+  .goal i { background: var(--lime); border-right: var(--line); }
+  .goal.over i { background: repeating-linear-gradient(45deg, var(--tomato) 0 10px, #ff8e7d 10px 20px); }
+  .lbl { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+  .lbl span:last-child { color: var(--muted); }
+
+  .dopa .meter { height: 22px; background: linear-gradient(90deg, var(--lime), var(--sun) 50%, var(--tomato)); }
+  .dopa .cover { position: absolute; top: 0; bottom: 0; right: 0; background: #f1ecf5; border-left: var(--line); }
+  .dopa .face { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 26px; filter: drop-shadow(1px 1px 0 var(--ink)); }
+  .dopa .state { font-size: 20px; font-weight: 800; margin-top: 6px; }
+  .fine { font-size: 12px; color: var(--muted); line-height: 1.25; }
+
+  .apps .app { display: grid; grid-template-columns: 34px 1fr auto; gap: 4px 10px; align-items: center; padding: 6px 0; }
+  .apps .app + .app { border-top: 2px dashed #e4dcea; }
+  .ico {
+    width: 34px; height: 34px; border-radius: 10px; border: 2px solid var(--ink); display: grid; place-items: center;
+    color: #fff; font-weight: 800; font-size: 15px; grid-row: span 2;
+  }
+  .apps .name { font-weight: 700; font-size: 15px; line-height: 1; }
+  .apps .val { font-weight: 800; font-size: 15px; grid-row: span 2; }
+  .apps .bar { height: 7px; border-radius: 4px; background: #efe8f3; overflow: hidden; }
+  .apps .bar i { display: block; height: 100%; border-radius: 4px; }
+
+  /* Logros */
+  .medals { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .medal { text-align: center; padding: 12px 8px 10px; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .medal .em { font-size: 34px; line-height: 1.1; }
+  .medal b { font-size: 14px; line-height: 1.1; }
+  .medal span { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .medal.off { background: #f3eff6; box-shadow: none; border-style: dashed; }
+  .medal.off .em { filter: grayscale(1); opacity: .35; }
+  .medal .meter { width: 100%; height: 10px; margin-top: 4px; border-width: 2px; }
+  .medal .meter i { background: var(--grape); }
+
+  /* Ajustes */
+  .group h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin: 0 4px 6px; }
+  .set { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 0; font-weight: 700; font-size: 15px; }
+  .set + .set { border-top: 2px dashed #e4dcea; }
+  .set small { display: block; font-weight: 500; font-size: 12px; color: var(--muted); line-height: 1.2; }
+  .toggle { width: 46px; height: 26px; border-radius: 999px; border: var(--line); background: var(--lime); position: relative; flex: none; }
+  .toggle::after { content: ''; position: absolute; top: 2px; right: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); }
+  .ok { color: #2f9e44; }
+  .stepper { display: flex; align-items: center; gap: 8px; }
+  .stepper b { width: 28px; height: 28px; border-radius: 9px; border: var(--line); display: grid; place-items: center; background: var(--bg); }
+  .mascots { display: flex; gap: 8px; }
+  .mascots div { flex: 1; border: var(--line); border-radius: 14px; padding: 4px 2px 2px; text-align: center; font-size: 12px; font-weight: 700; background: #fff; }
+  .mascots div.on { background: var(--lime); box-shadow: 2px 2px 0 var(--ink); }
+  .mascots svg { width: 54px; height: 60px; display: block; margin: 0 auto; }
+  .danger { width: 100%; font: inherit; font-weight: 800; font-size: 15px; color: var(--tomato-ink); background: #fff; border: 2.5px solid var(--tomato-ink); border-radius: 14px; padding: 8px; }
+  .btn { font: inherit; font-weight: 800; font-size: 13px; border: var(--line); border-radius: 12px; padding: 3px 10px; background: var(--sky); box-shadow: 2px 2px 0 var(--ink); }
+
+  /* Notificación + widgets sobre un "escritorio" falso */
+  .home { background: linear-gradient(160deg, #6d5bd0, #c56cd6 55%, #ff9a8b); color: #fff; }
+  .home .statusbar { color: #fff; }
+  .notif { background: #fbf8ff; color: var(--ink); border-radius: 22px; padding: 12px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+  .notif .head { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .notif .head i { width: 20px; height: 20px; border-radius: 50%; background: var(--tomato-ink); color: #fff; display: grid; place-items: center; font-style: normal; font-size: 12px; }
+  .notif .t { font-weight: 800; font-size: 16px; margin-top: 4px; line-height: 1.15; }
+  .notif .d { font-size: 13px; color: #4a4155; line-height: 1.25; }
+  .widgets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .w { background: var(--bg); color: var(--ink); border: var(--line); border-radius: 24px; box-shadow: var(--pop); padding: 10px; }
+  .w.small { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; }
+  .w.small svg { width: 74px; height: 80px; }
+  .w.small b { font-size: 22px; line-height: 1; }
+  .w.wide { grid-column: span 2; display: flex; gap: 6px; align-items: center; }
+  .w.wide svg { width: 92px; height: 100px; flex: none; }
+  .w .mini { width: 100%; height: 9px; border: 2px solid var(--ink); border-radius: 999px; background: linear-gradient(90deg, var(--lime), var(--sun) 50%, var(--tomato)); position: relative; overflow: hidden; }
+  .w .mini .cover { position: absolute; top: 0; bottom: 0; right: 0; background: #f1ecf5; }
+  .dock { display: flex; justify-content: space-around; margin-top: auto; }
+  .dock span { width: 48px; height: 48px; border-radius: 16px; background: rgba(255,255,255,.28); border: 2px solid rgba(255,255,255,.5); }
+
+  /* Tarjeta para compartir (9:16) */
+  .share {
+    width: 300px; height: 533px; border-radius: 28px; border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+    background: var(--grape); position: relative; overflow: hidden; padding: 22px 20px; color: var(--ink);
+    display: flex; flex-direction: column;
+  }
+  .share::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle at 20% 15%, rgba(255,255,255,.35) 0 60px, transparent 61px),
+                radial-gradient(circle at 90% 70%, rgba(255,255,255,.25) 0 90px, transparent 91px);
+  }
+  .share > * { position: relative; }
+  .share .kick { font-weight: 800; font-size: 18px; background: var(--sun); border: var(--line); border-radius: 10px; padding: 0 10px; align-self: flex-start; transform: rotate(-3deg); }
+  .share .num { font-size: 66px; font-weight: 800; line-height: 1; margin-top: 14px; color: #fff; -webkit-text-stroke: 2.5px var(--ink); paint-order: stroke fill; text-shadow: 4px 4px 0 var(--ink); }
+  .share .sq { font-weight: 700; font-size: 17px; margin-top: 8px; background: #fff; border: var(--line); border-radius: 14px; padding: 6px 10px; }
+  .share svg { width: 190px; height: 209px; margin: auto auto 0; display: block; }
+  .share .dl { font-weight: 800; font-size: 15px; background: var(--ink); color: #fff; border-radius: 12px; padding: 4px 10px; text-align: center; margin-top: 8px; }
+  .share .brand { font-size: 12px; font-weight: 700; text-align: center; margin-top: 6px; opacity: .8; }
+
+  /* =====================================================================
+     MOVIMIENTO — capa encima del diseño (no cambia colores ni layout)
+     ===================================================================== */
+  :root {
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);   /* easeInOutSine (easings.net) para loops de respiración */
+    --ease-fall: cubic-bezier(0.11, 0, 0.5, 0);    /* easeInQuad: caída por gravedad de gotas/lágrimas (ilustración, no UI) */
+  }
+
+  /* Mascota viva: cada estado tiene su propio "idle" */
+  .mascot .m-body { transform-box: fill-box; transform-origin: 50% 100%; }
+  .st0 .m-body { animation: m-bounce 1.6s var(--ease-sine) infinite alternate; }
+  .st1 .m-body { animation: m-wobble 1.1s var(--ease-sine) infinite alternate; }
+  .st2 .m-body { animation: m-droop 2.6s var(--ease-sine) infinite alternate; }
+  .st3 .m-body { animation: m-lurch 1.4s linear infinite; }
+  @keyframes m-bounce { from { transform: translateY(0) scaleY(1); } to { transform: translateY(-5px) scaleY(1.02); } }
+  @keyframes m-wobble { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+  @keyframes m-droop  { from { transform: rotate(-1.5deg) scaleY(1); } to { transform: rotate(2deg) scaleY(.965); } }
+  @keyframes m-lurch {
+    0%, 100% { transform: rotate(0) translateX(0); }
+    20% { transform: rotate(-4deg) translateX(-2px); }
+    28% { transform: rotate(-2deg) translateX(-1px); }
+    55% { transform: rotate(3deg) translateX(2px); }
+    62% { transform: rotate(5deg) translateX(3px); }
+  }
+
+  /* Parpadeo (solo estados con ojos abiertos) */
+  .m-eyes { transform-box: fill-box; transform-origin: 50% 50%; }
+  .st0 .m-eyes, .st1 .m-eyes { animation: m-blink 4.2s linear infinite; }
+  .st1 .m-eyes { animation-duration: 2.8s; }
+  @keyframes m-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
+  /* Efectos */
+  .fx-spark { transform-box: fill-box; transform-origin: 50% 50%; animation: fx-spark 1.4s var(--ease-sine) infinite alternate; }
+  .fx-spark:nth-of-type(2n) { animation-delay: -.7s; }
+  @keyframes fx-spark { from { transform: scale(.75) rotate(0); opacity: .6; } to { transform: scale(1.1) rotate(20deg); opacity: 1; } }
+
+  .fx-drop { transform-box: fill-box; animation: fx-drop 1.5s var(--ease-fall) infinite; }
+  .fx-drop:nth-of-type(2n) { animation-delay: -.6s; }
+  @keyframes fx-drop { 0% { transform: translateY(-4px); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(18px); opacity: 0; } }
+
+  .fx-z { animation: fx-z 2.2s var(--ease-out) infinite; }
+  .fx-z + .fx-z { animation-delay: -1.1s; }
+  @keyframes fx-z { 0% { transform: translate(0, 6px); opacity: 0; } 30% { opacity: 1; } 100% { transform: translate(6px, -12px); opacity: 0; } }
+
+  .fx-steam { animation: fx-steam 1.8s linear infinite; }
+  @keyframes fx-steam { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: .9; } 100% { transform: translateY(-10px); opacity: 0; } }
+
+  .fx-tear { transform-box: fill-box; transform-origin: 50% 0; animation: fx-tear 1.1s var(--ease-fall) infinite alternate; }
+  @keyframes fx-tear { from { transform: scaleY(.55); } to { transform: scaleY(1.08); } }
+
+  .fx-angry { transform-box: fill-box; transform-origin: 50% 50%; animation: fx-angry .55s var(--ease-sine) infinite alternate; }
+  @keyframes fx-angry { from { transform: scale(.9); } to { transform: scale(1.18); } }
+
+  .fx-fly { animation: fx-fly 1.6s linear infinite; }
+  @keyframes fx-fly {
+    0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-8px, 5px); }
+    50% { transform: translate(-2px, 10px); } 75% { transform: translate(6px, 4px); }
+  }
+
+  /* Fondo del héroe cambia de color con el estado */
+  .hero { transition: background-color .3s ease; }
+
+  /* Equivalencia: sale hacia arriba, entra desde abajo */
+  .eq { transition: opacity .2s var(--ease-out), transform .2s var(--ease-out); }
+  .eq.out { opacity: 0; transform: translateY(-6px); }
+  .eq.in  { opacity: 0; transform: translateY(6px); transition: none; }
+
+  /* Barra de dopamina: la tapa se recorta con clip-path y la carita viaja con transform */
+  .dopa .cover, .w .mini .cover { width: 100%; border-left: 0; transition: clip-path .35s var(--ease-out); }
+  .dopa .face { left: 0; transition: transform .35s var(--ease-out); }
+  .face-in { display: inline-block; }
+  .lv1 .face-in { animation: m-bounce 1.2s var(--ease-sine) infinite alternate; }
+  .lv2 .face-in { animation: f-wiggle .45s var(--ease-sine) infinite alternate; }
+  .lv3 .face-in { animation: f-spin 1.4s linear infinite; }
+  .lv4 .face-in { animation: f-sizzle .18s linear infinite; }
+  @keyframes f-wiggle { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+  @keyframes f-spin { to { transform: rotate(360deg); } }
+  @keyframes f-sizzle {
+    0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-1.5px, 1px); }
+    50% { transform: translate(1px, -1.5px); } 75% { transform: translate(1.5px, 1px); }
+  }
+
+  /* Meta superada: franjas que avanzan (transform, no background-position) */
+  .goal i { overflow: hidden; transform-origin: 0 50%; }
+  .goal.over i { background: var(--tomato); }
+  .goal.over i::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: -29px; right: -29px;
+    background: repeating-linear-gradient(45deg, var(--tomato) 0 10px, #ff8e7d 10px 20px);
+    animation: stripes .9s linear infinite;
+  }
+  @keyframes stripes { to { transform: translateX(28.28px); } }
+
+  /* Feedback al presionar */
+  .iconbtn, .btn, .danger, .tabs span, .mascots div, .presets button, .seg button, .toggle, .stepper b {
+    transition: transform .16s var(--ease-out); cursor: pointer;
+  }
+  .iconbtn:active, .btn:active, .danger:active, .tabs span:active, .mascots div:active,
+  .presets button:active, .seg button:active, .toggle:active, .stepper b:active { transform: scale(.95); }
+  @media (hover: hover) and (pointer: fine) {
+    .iconbtn:hover, .btn:hover { transform: translateY(-1px); }
+  }
+
+  /* Interruptores que se pueden tocar */
+  .toggle { transition: transform .16s var(--ease-out), background-color .2s ease; }
+  .toggle::after { transition: transform .2s var(--ease-out); }
+  .toggle.off { background: #e4dcea; }
+  .toggle.off::after { transform: translateX(-20px); }
+
+  /* Menos movimiento: se quitan loops y desplazamientos, quedan los cambios de color/opacidad */
+  @media (prefers-reduced-motion: reduce) {
+    .mascot *, .face-in, .goal.over i::before { animation: none !important; }
+    .eq.out, .eq.in { transform: none; }
+    .dopa .face { transition: none; }
+  }
+
+  .notes { max-width: 1100px; margin-top: 36px; background: #fff; border: var(--line); border-radius: 18px; padding: 16px 20px; box-shadow: var(--pop); }
+  .notes h3 { font-size: 18px; margin-bottom: 6px; }
+  .notes li { margin-left: 18px; font-size: 15px; }
+</style>
+</head>
+<body>
+  <h1>Scrollómetro · maquetas</h1>
+  <p class="sub">Maqueta estática con datos falsos. Mueve los controles para ver cómo reacciona todo.</p>
+
+  <div class="controls">
+    <label>Distancia hoy
+      <input id="dist" type="range" min="0" max="1000" value="0" />
+      <span class="val" id="distVal"></span>
+      <span class="presets">
+        <button data-m="8">8 m</button><button data-m="180">180 m</button><button data-m="1300">1,3 km</button><button data-m="12500">12,5 km</button>
+      </span>
+    </label>
+    <label>Dopamina
+      <input id="dopa" type="range" min="0" max="100" value="72" />
+      <span class="val" id="dopaVal"></span>
+    </label>
+    <label>Mascota
+      <span class="seg" id="mascotSeg">
+        <button data-k="pulgar" class="on">👍 Pulgar</button><button data-k="caracol">🐌 Caracol</button><button data-k="cerebro">🧠 Cerebro</button>
+      </span>
+    </label>
+  </div>
+
+  <div class="gallery">
+    <!-- 1. INICIO -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>2:05</span><span>▲ ◆ 93%</span></div>
+        <div class="content">
+          <div class="topbar">
+            <div><h2>Hoy</h2><span class="chip">sáb 31 oct</span></div>
+            <div class="iconbtn">⚙️</div>
+          </div>
+
+          <div class="card hero" id="hero">
+            <div class="row">
+              <div data-mascot="150"></div>
+              <div class="bubble" data-bubble></div>
+            </div>
+            <span class="stage" data-stage></span>
+          </div>
+
+          <div class="card total">
+            <small>Hoy scrolleaste</small>
+            <div class="big" data-dist></div>
+            <div class="eq" data-eq></div>
+          </div>
+
+          <div class="card">
+            <div class="lbl"><span>Meta diaria: 500 m</span><span data-goaltxt></span></div>
+            <div class="meter goal" data-goal><i></i></div>
+          </div>
+
+          <div class="card dopa">
+            <div class="lbl"><span>Barra de dopamina</span><span>últimos 10 min</span></div>
+            <div class="meter"><div class="cover" data-cover></div><span class="face" data-face></span></div>
+            <div class="state" data-dstate></div>
+            <p class="fine">*Medición 100% científica de broma: se calcula con tu ritmo de swipes.</p>
+          </div>
+
+          <div class="card apps" data-apps></div>
+        </div>
+        <div class="tabs"><span class="on"><b>🏠</b>Hoy</span><span><b>🏆</b>Logros</span><span><b>⚙️</b>Ajustes</span></div>
+        <div class="gesture"><i></i></div>
+      </div></div>
+      <figcaption>Inicio<small>mascota · total · equivalencia · meta · dopamina · por app</small></figcaption>
+    </figure>
+
+    <!-- 2. LOGROS -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>2:05</span><span>▲ ◆ 93%</span></div>
+        <div class="content">
+          <div class="topbar">
+            <div><h2>Logros</h2><span class="chip" data-hist></span></div>
+          </div>
+          <div class="medals" data-medals></div>
+        </div>
+        <div class="tabs"><span><b>🏠</b>Hoy</span><span class="on"><b>🏆</b>Logros</span><span><b>⚙️</b>Ajustes</span></div>
+        <div class="gesture"><i></i></div>
+      </div></div>
+      <figcaption>Logros<small>se desbloquean con el acumulado histórico</small></figcaption>
+    </figure>
+
+    <!-- 3. AJUSTES -->
+    <figure>
+      <div class="phone"><div class="screen">
+        <div class="statusbar"><span>2:05</span><span>▲ ◆ 93%</span></div>
+        <div class="content">
+          <div class="topbar"><h2>Ajustes</h2></div>
+
+          <div class="group">
+            <h3>Servicio</h3>
+            <div class="card">
+              <div class="set"><div><span class="ok">● Midiendo</span><small>Accesibilidad activa y corriendo</small></div><button class="btn">Abrir</button></div>
+            </div>
+          </div>
+
+          <div class="group">
+            <h3>Mascota</h3>
+            <div class="card"><div class="mascots" data-pick></div></div>
+          </div>
+
+          <div class="group">
+            <h3>Preferencias</h3>
+            <div class="card">
+              <div class="set"><span>Meta diaria</span><span class="stepper"><b>−</b>500 m<b>+</b></span></div>
+              <div class="set"><div>Notificación fija<small>Total del día en la barra</small></div><span class="toggle"></span></div>
+              <div class="set"><div>Frases cómicas<small>En la notificación y el inicio</small></div><span class="toggle"></span></div>
+            </div>
+          </div>
+
+          <div class="group">
+            <h3>Avanzado</h3>
+            <div class="card">
+              <div class="set"><span>▸ Eventos crudos (38)</span></div>
+              <div class="set"><div>Calibración<small>401 dpi · pantalla 15 cm</small></div></div>
+            </div>
+          </div>
+
+          <button class="danger">Reiniciar hoy</button>
+        </div>
+        <div class="tabs"><span><b>🏠</b>Hoy</span><span><b>🏆</b>Logros</span><span class="on"><b>⚙️</b>Ajustes</span></div>
+        <div class="gesture"><i></i></div>
+      </div></div>
+      <figcaption>Ajustes<small>reiniciar y depuración salen del inicio</small></figcaption>
+    </figure>
+
+    <!-- 4. NOTIFICACIÓN + WIDGETS -->
+    <figure>
+      <div class="phone"><div class="screen home">
+        <div class="statusbar"><span>2:05</span><span>▲ ◆ 93%</span></div>
+        <div class="content">
+          <div class="notif">
+            <div class="head"><i>↕</i>Scrollómetro · ahora</div>
+            <div class="t" data-ntitle></div>
+            <div class="d" data-ntext></div>
+          </div>
+          <div style="height:8px"></div>
+          <div class="widgets">
+            <div class="w small">
+              <div data-mascot="80"></div>
+              <b data-dist></b>
+              <div class="mini"><div class="cover" data-cover></div></div>
+            </div>
+            <div></div>
+            <div class="w wide">
+              <div data-mascot="100"></div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:700;color:var(--muted)">Hoy scrolleaste</div>
+                <div style="font-size:30px;font-weight:800;line-height:1" data-dist></div>
+                <div style="font-size:12.5px;font-weight:700;line-height:1.2;margin:4px 0 6px" data-eqstatic></div>
+                <div class="mini"><div class="cover" data-cover></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="dock"><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="gesture"><i style="background:#fff"></i></div>
+      </div></div>
+      <figcaption>Notificación y widgets<small>widget 2×2 y 4×2 en el escritorio</small></figcaption>
+    </figure>
+
+    <!-- 5. TARJETA PARA COMPARTIR -->
+    <figure>
+      <div class="share">
+        <span class="kick">HOY MI PULGAR RECORRIÓ</span>
+        <div class="num" data-dist></div>
+        <div class="sq" data-eqstatic></div>
+        <div data-mascot="190"></div>
+        <div class="dl" data-sharedopa></div>
+        <div class="brand">📏 scrollómetro · ¿y tu pulgar?</div>
+      </div>
+      <figcaption>Tarjeta para historias<small>1080×1920, se comparte desde Inicio</small></figcaption>
+    </figure>
+  </div>
+
+  <div class="notes">
+    <h3>Qué mirar</h3>
+    <ul>
+      <li>La mascota cambia de estado según la distancia: &lt;100 m, &lt;500 m, &lt;2 km y más.</li>
+      <li>La equivalencia rota cada pocos segundos en Inicio; el widget y la tarjeta usan la más llamativa.</li>
+      <li>Reiniciar y los eventos crudos se movieron a Ajustes; la barra de pestañas queda sobre los gestos de Android.</li>
+    </ul>
+  </div>
+
+<script>
+const INK = '#23192e';
+const S = `stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"`;
+
+// ---------- Formatos es-CL ----------
+const nf = (x, d = 1) => x.toLocaleString('es-CL', { maximumFractionDigits: d });
+function fmtDist(m) {
+  if (m < 1) return `${Math.round(m * 100)} cm`;
+  if (m < 1000) return `${nf(m, m < 10 ? 1 : 0)} m`;
+  return `${nf(m / 1000, m < 10000 ? 2 : 1)} km`;
+}
+function fmtTime(sec) {
+  if (sec < 3600) return `${nf(sec / 60, 0)} minutos`;
+  if (sec < 86400) return `${nf(sec / 3600, 1)} horas`;
+  return `${nf(sec / 86400, 1)} días`;
+}
+
+// ---------- Equivalencias cómicas ----------
+function equivalences(m) {
+  const list = [];
+  if (m < 0.2) list.push('Todavía ni calientas el dedo 🫵');
+  list.push(`🐌 Un caracol tardaría ${fmtTime(m / 0.001)} en recorrer esto`);
+  if (m >= 12) list.push(`🚌 Son ${nf(m / 12)} micros en fila`);
+  if (m >= 30) list.push(`⚽ Cruzaste ${nf(m / 105)} canchas de fútbol`);
+  if (m >= 90) list.push(`🏙️ Subiste ${nf(m / 300)} veces la Gran Torre Santiago`);
+  if (m >= 500) list.push(`🏔️ Vas al ${nf((m / 8849) * 100)} % del Everest`);
+  if (m >= 3000) list.push(`🌲 Llevas el ${nf((m / 1030000) * 100, 2)} % del camino a Puerto Montt`);
+  if (m >= 10000) list.push(`🏃 Es el ${nf((m / 42195) * 100, 0)} % de una maratón`);
+  if (m < 12) list.push(`📱 Son ${nf(m / 0.15)} pantallas de celular`);
+  return list;
+}
+// La más llamativa para widget y tarjeta (la última suele ser la más grande)
+const bestEq = (m) => { const l = equivalences(m); return l[l.length - 1]; };
+
+// ---------- Mascotas (SVG 200×220) ----------
+const stageOf = (m) => (m < 100 ? 0 : m < 500 ? 1 : m < 2000 ? 2 : 3);
+
+// Los ojos van en un grupo propio para poder parpadear
+const eyes = (s, lx, rx, y) => `<g class="m-eyes">${eyesRaw(s, lx, rx, y)}</g>`;
+function eyesRaw(s, lx, rx, y) {
+  const ball = (x, r = 9) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/><circle cx="${x + 3}" cy="${y - 3}" r="3" fill="#fff"/>`;
+  if (s === 0) return ball(lx) + ball(rx);
+  if (s === 1) return ball(lx, 8) + ball(rx, 8) +
+    `<path d="M${lx - 11} ${y - 14} L${lx + 7} ${y - 19}" ${S} fill="none"/><path d="M${rx - 7} ${y - 19} L${rx + 11} ${y - 14}" ${S} fill="none"/>`;
+  if (s === 2) return [lx, rx].map((x) =>
+    `<path d="M${x - 11} ${y - 2} Q${x} ${y + 8} ${x + 11} ${y - 2}" ${S} fill="none"/><path d="M${x - 8} ${y + 9} Q${x} ${y + 13} ${x + 8} ${y + 9}" stroke="${INK}" stroke-width="2.5" fill="none" opacity=".5"/>`).join('');
+  return `<path d="M${lx - 8} ${y - 8} L${lx + 8} ${y + 8} M${lx + 8} ${y - 8} L${lx - 8} ${y + 8}" ${S}/>` +
+    `<circle cx="${rx}" cy="${y}" r="12" fill="#fff" ${S}/><circle cx="${rx + 4}" cy="${y + 3}" r="3.5" fill="${INK}"/>`;
+}
+function mouth(s, cx, y) {
+  if (s === 0) return `<path d="M${cx - 16} ${y} Q${cx} ${y + 22} ${cx + 16} ${y} Z" fill="${INK}" ${S}/><path d="M${cx - 7} ${y + 9} Q${cx} ${y + 5} ${cx + 7} ${y + 9} Q${cx} ${y + 15} ${cx - 7} ${y + 9}Z" fill="#ff7a8a"/>`;
+  if (s === 1) return `<path d="M${cx - 16} ${y + 4} q5 -7 10 0 t10 0 t10 0" ${S} fill="none"/>`;
+  if (s === 2) return `<ellipse cx="${cx}" cy="${y + 4}" rx="9" ry="10" fill="${INK}"/><path d="M${cx - 6} ${y + 8} Q${cx - 6} ${y + 24} ${cx} ${y + 24} Q${cx + 6} ${y + 24} ${cx + 6} ${y + 8}Z" fill="#ff7a8a" stroke="${INK}" stroke-width="3"/>`;
+  return `<path d="M${cx - 18} ${y + 2} L${cx - 10} ${y + 8} L${cx - 2} ${y + 2} L${cx + 6} ${y + 8} L${cx + 14} ${y + 2} L${cx + 18} ${y + 5}" ${S} fill="none"/>`;
+}
+const cheeks = (s, lx, rx, y) => s < 2 ? `<ellipse cx="${lx - 8}" cy="${y}" rx="8" ry="5" fill="#ff8fab" opacity=".7"/><ellipse cx="${rx + 8}" cy="${y}" rx="8" ry="5" fill="#ff8fab" opacity=".7"/>` : '';
+const drop = (x, y, k = 1) => `<path class="fx-drop" d="M${x} ${y} q${8 * k} ${12 * k} 0 ${18 * k} q${-8 * k} ${-6 * k} 0 ${-18 * k}z" fill="#8fd3ff" stroke="${INK}" stroke-width="3"/>`;
+const sparkle = (x, y) => `<path class="fx-spark" d="M${x} ${y} l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" fill="#ffd24a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+
+function thumb(s) {
+  const skin = ['#ffcfa3', '#ffbe8f', '#f5ae8c', '#b5d99c'][s];
+  let out = `<path d="M52 222 V82 Q52 22 100 22 Q148 22 148 82 V222" fill="${skin}" ${S}/>
+    <path d="M70 84 Q70 40 100 40 Q130 40 130 84 Q130 96 118 96 H82 Q70 96 70 84Z" fill="#ffeadb" ${S}/>
+    <path d="M72 196 q14 6 28 0 M100 206 q14 6 28 0" ${S} fill="none" opacity=".6"/>`;
+  out += cheeks(s, 80, 120, 146) + eyes(s, 80, 120, 128) + mouth(s, 100, 154);
+  if (s === 0) out += sparkle(166, 30) + sparkle(30, 70);
+  if (s === 1) out += drop(160, 66) + drop(36, 96, 0.8);
+  if (s === 2) out += `<g transform="rotate(-24 100 66)"><rect x="74" y="58" width="52" height="17" rx="8.5" fill="#ffd9a8" stroke="${INK}" stroke-width="3"/><circle cx="94" cy="66.5" r="1.8" fill="${INK}"/><circle cx="106" cy="66.5" r="1.8" fill="${INK}"/></g>` + drop(162, 80) + `<text class="fx-z" x="150" y="40" font-size="26" font-weight="800" fill="${INK}">z</text><text class="fx-z" x="168" y="22" font-size="18" font-weight="800" fill="${INK}">z</text>`;
+  if (s === 3) out += `<path d="M62 112 L98 104" ${S} fill="none"/><path d="M70 104 l4 12 M82 101 l4 12 M92 99 l4 12" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>` +
+    `<g class="fx-fly"><circle cx="168" cy="48" r="5" fill="${INK}"/><ellipse cx="164" cy="41" rx="5" ry="3" fill="#fff" stroke="${INK}" stroke-width="2"/><ellipse cx="173" cy="41" rx="5" ry="3" fill="#fff" stroke="${INK}" stroke-width="2"/></g><path d="M150 70 q10 -6 6 -14 q-4 -8 8 -10" stroke="${INK}" stroke-width="2" stroke-dasharray="3 4" fill="none"/>`;
+  return out;
+}
+
+function snail(s) {
+  const body = ['#d7ee8c', '#d7ee8c', '#ffb38a', '#c4d9ff'][s];
+  let out = `<path d="M14 206 Q14 182 44 180 H146 Q152 180 152 166 V124 Q152 96 174 96 Q196 96 196 124 V184 Q196 206 172 206 Z" fill="${body}" ${S}/>
+    <path d="M166 100 L158 62 M184 100 L190 62" ${S}/>
+    <circle cx="88" cy="124" r="58" fill="#ffb86b" ${S}/>
+    <path d="M90 126 a8 8 0 1 1 8 -8 a17 17 0 1 1 -17 17 a28 28 0 1 1 28 -28 a40 40 0 1 1 -40 40" ${S} fill="none"/>`;
+  // ojos en las antenas
+  const ex = [158, 190], ey = 56;
+  ex.forEach((x) => (out += `<circle cx="${x}" cy="${ey}" r="12" fill="#fff" ${S}/>`));
+  out += '<g class="m-eyes">';
+  if (s === 0) ex.forEach((x) => (out += `<circle cx="${x}" cy="${ey - 2}" r="6" fill="${INK}"/><circle cx="${x + 2}" cy="${ey - 4}" r="2" fill="#fff"/>`));
+  if (s === 1) ex.forEach((x) => (out += `<circle cx="${x - 5}" cy="${ey + 3}" r="4.5" fill="${INK}"/><path d="M${x - 12} ${ey - 1} H${x + 12}" ${S}/><path d="M${x - 12} ${ey - 1} A12 12 0 0 1 ${x + 12} ${ey - 1}Z" fill="${body}"/>`));
+  if (s === 2) {
+    out += `<circle cx="158" cy="${ey + 3}" r="4.5" fill="${INK}"/><circle cx="190" cy="${ey + 3}" r="4.5" fill="${INK}"/>`;
+    out += `<path d="M146 ${ey - 6} L170 ${ey + 1} M202 ${ey - 6} L178 ${ey + 1}" ${S}/>`;
+  }
+  if (s === 3) ex.forEach((x) => (out += `<circle cx="${x}" cy="${ey + 2}" r="5" fill="${INK}"/>`));
+  out += '</g>';
+  if (s === 2) out += `<text class="fx-angry" x="104" y="40" font-size="30">💢</text>`;
+  if (s === 3) {
+    ex.forEach((x) => (out += `<path class="fx-tear" d="M${x} ${ey + 12} q-4 20 2 40" stroke="#5cb8ff" stroke-width="5" stroke-linecap="round" fill="none"/>`));
+  }
+  if (s === 0) out += `<ellipse cx="174" cy="144" rx="5" ry="7" fill="${INK}"/>` + sparkle(120, 30);
+  if (s === 1) out += `<path d="M164 146 H184" ${S}/>`;
+  if (s === 2) out += `<path d="M162 152 Q174 140 186 152" ${S} fill="none"/>`;
+  if (s === 3) out += `<path d="M160 154 q4 -12 14 -12 q10 0 14 12" fill="${INK}" ${S}/>`;
+  if (s < 2) out += `<ellipse cx="164" cy="134" rx="6" ry="4" fill="#ff8fab" opacity=".7"/><ellipse cx="188" cy="134" rx="6" ry="4" fill="#ff8fab" opacity=".7"/>`;
+  return out;
+}
+
+function brain(s) {
+  const c = ['#ffb3c7', '#ffa3b5', '#ff9a7a', '#e8b867'][s];
+  const lobes = [[68, 92, 38], [108, 76, 40], [146, 98, 34], [58, 132, 34], [100, 138, 44], [146, 136, 34]];
+  const y0 = s === 3 ? 10 : 22;
+  let out = '';
+  if (s === 3) out += `<path d="M178 196 L204 182" stroke="${INK}" stroke-width="12" stroke-linecap="round"/><ellipse cx="100" cy="198" rx="80" ry="17" fill="#3a3646" ${S}/><ellipse cx="100" cy="186" rx="62" ry="10" fill="#fff6d6" stroke="${INK}" stroke-width="3"/><!--body-->`;
+  out += `<g transform="translate(0 ${y0 - 22})">`;
+  out += lobes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" ${S}/>`).join('');
+  out += lobes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - 2.6}" fill="${c}"/>`).join('');
+  out += `<path d="M76 70 q10 -10 20 0 t20 0 M128 100 q8 8 16 0 M46 114 q8 -8 16 0 M150 128 q6 -8 12 0" stroke="${INK}" stroke-width="3.5" stroke-linecap="round" fill="none" opacity=".55"/>`;
+  out += cheeks(s, 84, 124, 140) + eyes(s, 84, 124, 122) + mouth(s, 104, 148);
+  if (s === 0) out += sparkle(170, 34);
+  if (s === 1) out += drop(166, 56);
+  if (s === 2) out += `<path class="fx-steam" d="M76 38 q-8 -10 0 -18 t0 -18 M106 30 q-8 -10 0 -18 t0 -18 M136 38 q-8 -10 0 -18 t0 -18" stroke="#8a8494" stroke-width="5" stroke-linecap="round" fill="none"/>`;
+  out += `</g>`;
+  return out;
+}
+
+const MASCOTS = {
+  pulgar: {
+    draw: thumb,
+    stages: ['Fresquito', 'Sudando la gota', 'Pide vacaciones', 'Pulgar zombie'],
+    lines: ['¡Listo pa’l día! 💪', 'Uff… ¿otro video más?', 'No siento la uña. Ayuda.', 'Braaains… digo, reels…'],
+  },
+  caracol: {
+    draw: snail,
+    stages: ['Impresionado', 'Celoso', 'Ofendido', 'Llorando en baba'],
+    lines: ['Wow, ¡qué rapidez!', 'Yo hago eso en 3 días…', 'No te hablo.', 'Nunca seré tan rápido 😭'],
+  },
+  cerebro: {
+    draw: brain,
+    stages: ['Fresco', 'Tibio', 'Humeando', 'Frito'],
+    lines: ['Todo bajo control 😌', 'Se está poniendo tibio esto…', '¿Huele a quemado o soy yo?', 'Listo pa’ la marraqueta 🍳'],
+  },
+};
+// El cuerpo entero va en .m-body para el "idle"; la sartén del cerebro frito queda quieta fuera del grupo animado
+const svg = (k, s) => {
+  const drawn = MASCOTS[k].draw(s);
+  const [still, body] = drawn.includes('<!--body-->') ? drawn.split('<!--body-->') : ['', drawn];
+  return `<svg viewBox="0 0 210 222" xmlns="http://www.w3.org/2000/svg" class="mascot st${s}">${still}<g class="m-body">${body}</g></svg>`;
+};
+
+// ---------- Dopamina ----------
+const DOPA = [
+  [20, '😌', 'Zen total'],
+  [45, '🙂', 'Curiosito'],
+  [70, '🎰', 'Enganchado'],
+  [90, '🌀', 'Hipnotizado'],
+  [101, '🍳', 'Cerebro frito'],
+];
+const dopaState = (v) => DOPA.find(([max]) => v < max);
+
+// ---------- Datos falsos por app ----------
+const APPS = [
+  ['TikTok', 'T', '#111', 0.52, '#ff2d6f'],
+  ['Instagram', 'I', 'linear-gradient(135deg,#feda75,#d62976,#4f5bd5)', 0.31, '#d62976'],
+  ['YouTube', 'Y', '#d4002b', 0.12, '#ff0033'],
+  ['X', 'X', '#000', 0.05, '#555'],
+];
+const MEDALS = [
+  ['👆', 'Primer toque', 0.01],
+  ['⚽', 'Cancha completa', 105],
+  ['🏙️', 'Gran Torre Santiago', 300],
+  ['🦶', 'Kilómetro de pulgar', 1000],
+  ['🏔️', 'Everest con el dedo', 8849],
+  ['🏃', 'Maratón del pulgar', 42195],
+  ['🌊', 'Santiago–Valpo', 116000],
+  ['🌲', 'Rumbo a Puerto Montt', 1030000],
+];
+
+// ---------- Estado de la maqueta ----------
+const st = { m: 1300, dopa: 72, mascot: 'pulgar', eqIdx: 0 };
+const $ = (sel) => document.querySelectorAll(sel);
+const sliderToM = (v) => (v <= 0 ? 0 : Math.pow(10, -2 + (v / 1000) * Math.log10(50000 * 100)));
+const mToSlider = (m) => (m <= 0.01 ? 0 : ((Math.log10(m) + 2) / Math.log10(50000 * 100)) * 1000);
+
+// ---------- Helpers de movimiento ----------
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
+const EASE_BACK = 'cubic-bezier(0.34, 1.56, 0.64, 1)'; // easeOutBack (easings.net): rebote juguetón, solo en momentos raros
+
+/** "Pop" al cambiar de estado: se encoge un poco y rebota. Con reduced motion solo hace fade. */
+function pop(el, { from = 0.92, origin = '50% 100%', duration = 420 } = {}) {
+  if (!el) return;
+  if (reduceMotion) { el.animate([{ opacity: 0.4 }, { opacity: 1 }], { duration: 200, easing: 'ease' }); return; }
+  el.style.transformOrigin = origin;
+  el.animate(
+    [{ transform: `scale(${from})`, opacity: 0.6 }, { transform: 'scale(1.04)', opacity: 1, offset: 0.6 }, { transform: 'scale(1)' }],
+    { duration, easing: EASE_BACK }
+  );
+}
+
+/** Cuenta el número desde el valor anterior (solo al abrir y con atajos; arrastrando el slider es instantáneo). */
+let shownM = 0, countRaf = 0, countTarget = null;
+const easeOutQuint = (t) => 1 - Math.pow(1 - t, 5);
+function setDist(m, animate) {
+  if (!animate && countRaf && m === countTarget) return; // un re-render sin cambios no corta el conteo en curso
+  cancelAnimationFrame(countRaf);
+  countRaf = 0;
+  countTarget = m;
+  const paint = (v) => $('[data-dist]').forEach((el) => (el.textContent = fmtDist(v)));
+  if (!animate || reduceMotion) { shownM = m; paint(m); return; }
+  const from = shownM, t0 = performance.now(), dur = 900;
+  const step = (now) => {
+    const t = Math.min(1, (now - t0) / dur);
+    shownM = from + (m - from) * easeOutQuint(t);
+    paint(shownM);
+    countRaf = t < 1 ? requestAnimationFrame(step) : 0;
+  };
+  countRaf = requestAnimationFrame(step);
+}
+
+let lastMascotKey = '', lastLine = '', lastDopaLabel = '', lastUnlocked = null, lastPick = '';
+
+function render(opts = {}) {
+  const { m, dopa, mascot } = st;
+  const s = stageOf(m);
+  const mk = MASCOTS[mascot];
+
+  document.getElementById('distVal').textContent = fmtDist(m);
+  document.getElementById('dopaVal').textContent = dopa;
+
+  // La mascota solo se redibuja si cambia de personaje o de estado (así sus loops no se reinician al arrastrar)
+  const mascotKey = `${mascot}:${s}`;
+  if (mascotKey !== lastMascotKey) {
+    const first = lastMascotKey === '';
+    $('[data-mascot]').forEach((el) => {
+      el.innerHTML = svg(mascot, s);
+      if (!first) pop(el.firstElementChild);
+    });
+    $('[data-stage]').forEach((el) => { el.textContent = mk.stages[s]; if (!first) pop(el, { origin: '100% 50%', duration: 320 }); });
+    lastMascotKey = mascotKey;
+  }
+  if (mk.lines[s] !== lastLine) {
+    $('[data-bubble]').forEach((el) => {
+      el.textContent = mk.lines[s];
+      // El globo nace desde su "colita" (abajo a la izquierda, hacia la mascota)
+      if (lastLine) pop(el, { from: 0.9, origin: '0% 85%', duration: 320 });
+    });
+    lastLine = mk.lines[s];
+  }
+  const hero = document.getElementById('hero');
+  hero.className = `card hero s${s}`;
+  setDist(m, opts.count);
+  $('[data-eqstatic]').forEach((el) => (el.textContent = bestEq(m)));
+  renderEq(false);
+
+  // Meta
+  const goal = 500, pct = Math.min(100, (m / goal) * 100);
+  $('[data-goal]').forEach((el) => {
+    el.classList.toggle('over', m > goal);
+    el.querySelector('i').style.width = `${pct}%`;
+  });
+  $('[data-goaltxt]').forEach((el) => (el.textContent = m > goal ? `te pasaste por ${fmtDist(m - goal)} 🙈` : `te quedan ${fmtDist(goal - m)}`));
+
+  // Dopamina: la tapa gris se recorta (clip-path) y la carita viaja con transform
+  const [, face, label] = dopaState(dopa);
+  const level = DOPA.findIndex(([max]) => dopa < max);
+  $('[data-cover]').forEach((el) => (el.style.clipPath = `inset(0 0 0 ${dopa}%)`));
+  $('[data-face]').forEach((el) => {
+    if (el.dataset.face !== face) { el.innerHTML = `<span class="face-in">${face}</span>`; el.dataset.face = face; }
+    el.className = `face lv${level}`;
+    const x = (el.parentElement.clientWidth * Math.min(92, Math.max(8, dopa))) / 100;
+    el.style.transform = `translate(calc(${x}px - 50%), -50%)`;
+  });
+  $('[data-dstate]').forEach((el) => {
+    el.textContent = `${face} ${label}`;
+    if (lastDopaLabel && label !== lastDopaLabel) pop(el, { origin: '0% 50%', duration: 320 });
+  });
+  lastDopaLabel = label;
+  $('[data-sharedopa]').forEach((el) => (el.textContent = `Nivel de dopamina: ${label} ${face}`));
+
+  // Por app
+  const max = APPS[0][3];
+  $('[data-apps]').forEach((el) => (el.innerHTML = APPS.map(([n, l, bg, p, col]) => `
+    <div class="app"><span class="ico" style="background:${bg}">${l}</span><span class="name">${n}</span><span class="val">${fmtDist(m * p)}</span>
+    <span class="bar"><i style="width:${(p / max) * 100}%;background:${col}"></i></span></div>`).join('')));
+
+  // Notificación
+  $('[data-ntitle]').forEach((el) => (el.textContent = `Hoy scrolleaste ${fmtDist(m)} ${['💪', '😅', '🥵', '🧟'][s]}`));
+  $('[data-ntext]').forEach((el) => (el.textContent = `TikTok ${fmtDist(m * APPS[0][3])} · Instagram ${fmtDist(m * APPS[1][3])} — ${mk.lines[s]}`));
+
+  // Logros (histórico falso: lo de hoy + lo acumulado antes)
+  const hist = m * 9 + 6400;
+  $('[data-hist]').forEach((el) => (el.textContent = `histórico: ${fmtDist(hist)}`));
+  const unlocked = MEDALS.filter(([, , need]) => hist >= need).map(([, t]) => t);
+  $('[data-medals]').forEach((el) => {
+    el.innerHTML = MEDALS.map(([em, t, need]) => {
+      const on = hist >= need;
+      return `<div class="card medal ${on ? '' : 'off'}" data-t="${t}"><span class="em">${on ? em : '🔒'}</span><b>${t}</b><span>${fmtDist(need)}</span>
+        ${on ? '' : `<div class="meter"><i style="width:${Math.min(100, (hist / need) * 100)}%"></i></div>`}</div>`;
+    }).join('');
+    // Logro recién desbloqueado: rebote + la medalla da una vuelta (momento raro → aquí sí va el "delight")
+    if (lastUnlocked) unlocked.filter((t) => !lastUnlocked.includes(t)).forEach((t) => {
+      const card = el.querySelector(`[data-t="${t}"]`);
+      pop(card, { from: 0.85, origin: '50% 50%', duration: 520 });
+      if (!reduceMotion) card.querySelector('.em').animate(
+        [{ transform: 'rotate(-20deg) scale(.6)' }, { transform: 'rotate(10deg) scale(1.25)', offset: 0.6 }, { transform: 'none' }],
+        { duration: 600, easing: EASE_BACK }
+      );
+    });
+  });
+  lastUnlocked = unlocked;
+
+  // Selector de mascota en Ajustes (solo se redibuja si cambia, para no reiniciar sus loops)
+  if (lastPick !== mascot) {
+    $('[data-pick]').forEach((el) => (el.innerHTML = Object.keys(MASCOTS).map((k) =>
+      `<div class="${k === mascot ? 'on' : ''}" data-k="${k}">${svg(k, 0)}${k[0].toUpperCase() + k.slice(1)}</div>`).join('')));
+    lastPick = mascot;
+  }
+
+  // Texto de la tarjeta según mascota
+  document.querySelector('.share .kick').textContent =
+    { pulgar: 'HOY MI PULGAR RECORRIÓ', caracol: 'HOY HUMILLÉ A UN CARACOL', cerebro: 'HOY MI CEREBRO SCROLLEÓ' }[mascot];
+}
+
+function renderEq(advance) {
+  const list = equivalences(st.m);
+  if (advance) st.eqIdx++;
+  const txt = list[st.eqIdx % list.length];
+  $('[data-eq]').forEach((el) => {
+    if (!advance) { el.textContent = txt; return; }
+    // Sale hacia arriba → cambia el texto → entra desde abajo
+    el.classList.add('out');
+    setTimeout(() => {
+      el.textContent = txt;
+      el.classList.replace('out', 'in');
+      void el.offsetWidth; // fija la posición de entrada antes de soltar la transición
+      el.classList.remove('in');
+    }, 200);
+  });
+}
+
+const setMascot = (k) => {
+  st.mascot = k;
+  document.querySelectorAll('#mascotSeg button').forEach((x) => x.classList.toggle('on', x.dataset.k === k));
+  render();
+};
+
+// ---------- Eventos de los controles ----------
+const dist = document.getElementById('dist');
+dist.addEventListener('input', () => { st.m = sliderToM(+dist.value); render(); });
+document.getElementById('dopa').addEventListener('input', (e) => { st.dopa = +e.target.value; render(); });
+document.querySelectorAll('.presets button').forEach((b) => b.addEventListener('click', (e) => {
+  e.preventDefault(); st.m = +b.dataset.m; dist.value = mToSlider(st.m); render({ count: true });
+}));
+document.querySelectorAll('#mascotSeg button').forEach((b) => b.addEventListener('click', () => setMascot(b.dataset.k)));
+// En Ajustes también se puede elegir la mascota tocándola
+document.querySelector('[data-pick]').addEventListener('click', (e) => {
+  const k = e.target.closest('[data-k]')?.dataset.k;
+  if (k) setMascot(k);
+});
+document.querySelectorAll('.toggle').forEach((t) => t.addEventListener('click', () => t.classList.toggle('off')));
+setInterval(() => renderEq(true), 3500);
+
+/** Entrada al abrir la app: tarjetas en cascada, la meta se llena y la notificación baja. */
+function playIntro() {
+  if (reduceMotion) return;
+  document.querySelectorAll('.phone .content').forEach((content) => {
+    [...content.children].forEach((el, i) => el.animate(
+      [{ opacity: 0, transform: 'translateY(10px)' }, { opacity: 1, transform: 'none' }],
+      { duration: 320, delay: 60 + i * 50, easing: EASE_OUT, fill: 'backwards' }
+    ));
+  });
+  $('[data-goal] i').forEach((el) => el.animate(
+    [{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }],
+    { duration: 700, delay: 250, easing: EASE_OUT, fill: 'backwards' }
+  ));
+  $('.notif').forEach((el) => el.animate(
+    [{ opacity: 0, transform: 'translateY(-110%)' }, { opacity: 1, transform: 'none' }],
+    { duration: 450, delay: 300, easing: 'cubic-bezier(0.32, 0.72, 0, 1)', fill: 'backwards' }
+  ));
+}
+
+// Atajos por URL para revisar estados: ?m=1300&dopa=72&mascot=caracol
+const q = new URLSearchParams(location.search);
+if (q.has('m')) st.m = +q.get('m');
+if (q.has('dopa')) { st.dopa = +q.get('dopa'); document.getElementById('dopa').value = st.dopa; }
+if (MASCOTS[q.get('mascot')]) {
+  st.mascot = q.get('mascot');
+  document.querySelectorAll('#mascotSeg button').forEach((x) => x.classList.toggle('on', x.dataset.k === st.mascot));
+}
+
+dist.value = mToSlider(st.m);
+render({ count: true });
+playIntro();
+// Al cargar la fuente cambia el ancho de la barra: reubica la carita de dopamina
+document.fonts.ready.then(() => render());
+</script>
+</body>
