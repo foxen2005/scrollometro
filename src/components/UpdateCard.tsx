@@ -3,6 +3,17 @@ import type { Updates } from '../lib/updates';
 import { BORDER, C } from '../theme';
 import { Btn, Card, Txt } from './ui';
 
+/** Las notas del release vienen en markdown: se quitan títulos, negritas, citas y links para mostrarlas como texto. */
+function plainNotes(md: string) {
+  return md
+    .replace(/^#{1,6}\s*.*$/gm, '') // los títulos repiten el nombre de la versión
+    .replace(/\*\*|__|`/g, '')
+    .replace(/^>\s?/gm, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 /** Tarjeta "Llegó una versión nueva": descarga con progreso e instala con el diálogo de Android. */
 export function UpdateCard({ updates }: { updates: Updates }) {
   const { state, install, dismiss } = updates;
@@ -17,7 +28,7 @@ export function UpdateCard({ updates }: { updates: Updates }) {
       {state.kind === 'available' && (
         <>
           {!!release?.notes && (
-            <Txt w="medium" numberOfLines={5} style={styles.notes}>{release.notes}</Txt>
+            <Txt w="medium" numberOfLines={5} style={styles.notes}>{plainNotes(release.notes)}</Txt>
           )}
           <View style={styles.row}>
             <Btn label="Actualizar" kind="lime" onPress={() => install(release!)} />

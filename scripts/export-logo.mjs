@@ -73,7 +73,19 @@ function png(svg, out) {
   console.log(out);
 }
 
+// Splash: el logo como "tarjeta" redondeada con contorno tinta, centrado sobre el fondo celeste de la app
+function splash() {
+  const inner = logo().replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1024" height="1024">
+    <defs><clipPath id="r"><rect x="40" y="40" width="432" height="432" rx="96"/></clipPath></defs>
+    <rect x="52" y="52" width="432" height="432" rx="96" fill="${INK}"/>
+    <g clip-path="url(#r)"><g transform="translate(40 40) scale(${432 / 512})">${inner}</g></g>
+    <rect x="40" y="40" width="432" height="432" rx="96" fill="none" stroke="${INK}" stroke-width="10"/>
+  </svg>`;
+}
+
 writeFileSync(join(root, 'assets', 'logo.svg'), logo());
+png(splash(), join(root, 'assets', 'splash-icon.png'));
 png(logo(), join(root, 'assets', 'icon.png'));
 png(logo(), join(root, 'assets', 'logo.png'));
 // Adaptativo: fondo celeste aparte y el dibujo achicado para que la cara quede en la zona segura (66 %)

@@ -50,6 +50,7 @@ Requiere Android 7.0 o superior.
 - **Widgets** 2×2 y 4×2 para el escritorio.
 - **Tarjeta para historias** (1080×1920) para presumir o avergonzarte.
 - **Detalle por app**: TikTok, Instagram, YouTube, X… cada una con su distancia.
+- **Ranking mundial (opcional)**: el Top 25 de pulgares, con tu apodo y tu mascota.
 
 ## Privacidad
 
@@ -59,10 +60,11 @@ Scrollómetro ve cuándo se mueve tu pantalla, así que esto importa. Lo que hay
 |---|---|
 | **No lee lo que hay en pantalla.** El servicio se declara con `canRetrieveWindowContent="false"`: Android no le entrega textos, imágenes ni nada del contenido. | [`scroll_tracker_service.xml`](modules/scroll-tracker/android/src/main/res/xml/scroll_tracker_service.xml) |
 | **Solo escucha dos tipos de evento**: «hubo scroll» y «cambió la pantalla». Del evento usa el nombre de la app y cuántos píxeles se movió. | [`ScrollAccessibilityService.kt`](modules/scroll-tracker/android/src/main/java/cl/digitalfox/scrolltracker/ScrollAccessibilityService.kt), [`ScrollStore.kt`](modules/scroll-tracker/android/src/main/java/cl/digitalfox/scrolltracker/ScrollStore.kt) |
-| **Todo queda en tu teléfono**: totales por día y por app en `SharedPreferences`. Sin cuentas, sin servidor, sin analítica, sin anuncios. | `ScrollStore.kt` |
-| **Su única conexión a internet** es para leer el último release público de este repo y descargar el APK si hay versión nueva. No envía ningún dato tuyo. | [`src/lib/updates.ts`](src/lib/updates.ts), [`Updater.kt`](modules/scroll-tracker/android/src/main/java/cl/digitalfox/scrolltracker/Updater.kt) |
+| **Todo queda en tu teléfono**: totales por día y por app en `SharedPreferences`. Sin cuentas, sin servidor propio, sin analítica, sin anuncios. Lo único que puede salir es lo del ranking, y solo si te unes (ver abajo). | `ScrollStore.kt` |
+| **Actualizaciones**: lee el último release público de este repo y descarga el APK si hay versión nueva. No envía ningún dato tuyo. | [`src/lib/updates.ts`](src/lib/updates.ts), [`Updater.kt`](modules/scroll-tracker/android/src/main/java/cl/digitalfox/scrolltracker/Updater.kt) |
+| **Ranking opcional (Top 25)**: solo si te unes desde Logros, se envía a [dreamlo.com](https://dreamlo.com) tu apodo (con un número), tus metros totales y tu mascota. Va por HTTP sin cifrar porque dreamlo gratis no tiene HTTPS; es la única excepción (el resto de la app exige HTTPS). «Salir del ranking» borra tu entrada. | [`Leaderboard.kt`](modules/scroll-tracker/android/src/main/java/cl/digitalfox/scrolltracker/Leaderboard.kt), [`scrollometro_network_security.xml`](modules/scroll-tracker/android/src/main/res/xml/scrollometro_network_security.xml) |
 | **Actualizaciones verificadas**: solo se descargan desde `https://github.com/`, se revisa que el APK sea de esta app y de una versión mayor, y Android lo rechaza si no viene firmado con la misma llave. | `Updater.kt` |
-| **Permisos mínimos**: Accesibilidad, notificaciones, internet (solo GitHub) e instalar actualizaciones. Se bloquean explícitamente dibujar sobre otras apps, almacenamiento y vibración. | [`app.json`](app.json) |
+| **Permisos mínimos**: Accesibilidad, notificaciones, internet (GitHub para actualizaciones y, si te unes, dreamlo para el ranking) e instalar actualizaciones. Se bloquean explícitamente dibujar sobre otras apps, almacenamiento y vibración. | [`app.json`](app.json) |
 
 Lo apagas cuando quieras en **Ajustes → Accesibilidad → Scrollómetro**.
 
@@ -90,6 +92,7 @@ cd android && ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
 El servicio de accesibilidad es código nativo (módulo Expo local), así que **no corre en Expo Go**: hay que compilar el APK. Requiere Node 20+, JDK 17+ y el SDK de Android.
 
 - **Windows**: CMake 3.22 (el que viene por defecto) falla con rutas de más de 260 caracteres. El plugin [`withCmakeVersion`](plugins/withCmakeVersion.js) usa CMake 3.31.6: `sdkmanager --install "cmake;3.31.6"`.
+- **Ranking**: las claves de dreamlo (`DREAMLO_PRIVATE`, `DREAMLO_PUBLIC`) se leen de `~/.gradle/gradle.properties` y no están en el repo. Sin ellas, el ranking simplemente no aparece.
 - **Firma**: el build release usa la llave propia si existe `SCROLLOMETRO_STORE_FILE` en `~/.gradle/gradle.properties` ([`withReleaseSigning`](plugins/withReleaseSigning.js)); si no, cae a la llave de prueba. Los releases oficiales van siempre con la llave propia.
 - **Publicar**: [`scripts/release.ps1`](scripts/release.ps1) `-Version X.Y.Z -Notes "…"` sube la versión, compila, verifica la firma y crea el release con `Scrollometro.apk`.
 - **Mascotas del widget y logo**: [`scripts/export-mascots.mjs`](scripts/export-mascots.mjs) y [`scripts/export-logo.mjs`](scripts/export-logo.mjs) generan los PNG desde los mismos SVG de la app.

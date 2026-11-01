@@ -11,6 +11,13 @@ android {
   defaultConfig {
     versionCode 1
     versionName '0.1.0'
+    // Claves del ranking (dreamlo). Se leen de ~/.gradle/gradle.properties: NO están en el repo público.
+    // Sin ellas el ranking queda desactivado (la app funciona igual).
+    buildConfigField "String", "DREAMLO_PRIVATE", "\"${findProperty('DREAMLO_PRIVATE') ?: ''}\""
+    buildConfigField "String", "DREAMLO_PUBLIC", "\"${findProperty('DREAMLO_PUBLIC') ?: ''}\""
+  }
+  buildFeatures {
+    buildConfig true
   }
 }
 

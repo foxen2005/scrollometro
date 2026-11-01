@@ -33,7 +33,7 @@
   <p class="date">Última actualización: 31 de octubre de 2026</p>
 
   <div class="box">
-    <p><b>En corto:</b> Scrollómetro ve <i>que</i> tu pantalla se mueve, no <i>qué</i> hay en ella. Todo queda en tu teléfono. La única conexión a internet es para buscar actualizaciones en GitHub, y no envía nada tuyo.</p>
+    <p><b>En corto:</b> Scrollómetro ve <i>que</i> tu pantalla se mueve, no <i>qué</i> hay en ella. Todo queda en tu teléfono. Se conecta a GitHub para buscar actualizaciones sin enviar nada tuyo. Solo si te unes al ranking (opcional) se envían tu apodo, tus metros totales y tu mascota.</p>
   </div>
 
   <h2>Qué datos usa</h2>
@@ -48,7 +48,7 @@
     <li>No lee textos, imágenes, videos, mensajes ni lo que escribes. El servicio se declara con <code>canRetrieveWindowContent="false"</code>, así que Android ni siquiera se lo entrega.</li>
     <li>No toma capturas de pantalla ni graba nada.</li>
     <li>No tiene cuentas, anuncios, analítica ni servidores propios.</li>
-    <li>No comparte ni vende datos: no hay datos que salgan del teléfono.</li>
+    <li>No comparte ni vende datos. Lo único que puede salir del teléfono es lo del ranking, y solo si tú te unes.</li>
   </ul>
 
   <h2>Dónde se guarda</h2>
@@ -57,11 +57,14 @@
   <h2>Conexión a internet</h2>
   <p>Al abrirse, la app consulta la API pública de GitHub (<code>api.github.com/repos/foxen2005/scrollometro/releases/latest</code>) para saber si hay versión nueva. Si aceptas actualizar, descarga el APK desde <code>github.com</code>. Esas solicitudes no incluyen ningún dato de tu uso; GitHub ve lo mismo que con cualquier visita (como tu IP), según <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement">su propia política</a>.</p>
 
+  <h2>Ranking mundial (opcional)</h2>
+  <p>Si te unes al ranking desde la pantalla de Logros, la app envía a <a href="https://dreamlo.com">dreamlo.com</a> tu <b>apodo</b> (con un número de 4 cifras para distinguir apodos repetidos), tus <b>metros totales</b> y la <b>mascota</b> que elegiste. Se actualiza al abrir la app, como máximo una vez por hora. Por limitaciones del plan gratuito de dreamlo, esta conexión va por HTTP sin cifrar; es la única excepción, el resto de la app exige HTTPS. Si no te unes, no se envía nada. «Salir del ranking» borra tu entrada.</p>
+
   <h2>Permisos</h2>
   <ul>
     <li><b>Accesibilidad</b>: para recibir los eventos de scroll. Lo apagas cuando quieras en Ajustes → Accesibilidad.</li>
     <li><b>Notificaciones</b>: para la notificación fija con el total del día.</li>
-    <li><b>Internet</b>: solo para buscar y descargar actualizaciones desde GitHub.</li>
+    <li><b>Internet</b>: para buscar y descargar actualizaciones desde GitHub y, si te unes, para el ranking.</li>
     <li><b>Instalar apps</b>: para instalar sus propias actualizaciones; Android te pide confirmar cada una.</li>
   </ul>
 

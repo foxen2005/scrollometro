@@ -224,6 +224,10 @@ object ScrollStore {
     )
   }
 
+  /** Lo que se envía al ranking: metros totales acumulados (enteros) y la mascota elegida. */
+  @Synchronized
+  fun rankingSnapshot(): Pair<Long, String> = (histCm / 100).toLong() to mascot
+
   /** Lo que muestran los widgets. */
   class WidgetState(val mascot: String, val stage: Int, val distance: String, val line: String, val dopamine: Int, val openApp: PendingIntent?)
 

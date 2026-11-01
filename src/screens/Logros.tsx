@@ -2,9 +2,11 @@ import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Card, Chip, FadeInUp, Txt, useReduceMotion } from '../components/ui';
 import { MEDALS, fmtDist } from '../lib/content';
+import type { Ranking } from '../lib/ranking';
+import { RankingCard } from '../components/RankingCard';
 import { BORDER, C, RADIUS } from '../theme';
 
-export function Logros({ histCm }: { histCm: number }) {
+export function Logros({ histCm, ranking, onOpenRanking }: { histCm: number; ranking: Ranking; onOpenRanking: () => void }) {
   const hist = histCm / 100;
   const unlocked = MEDALS.filter(([, , need]) => hist >= need).length;
   const next = MEDALS[unlocked]; // el próximo logro por desbloquear (undefined si ya llegaste a la Luna)
@@ -43,6 +45,11 @@ export function Logros({ histCm }: { histCm: number }) {
           )}
         </Card>
       </FadeInUp>
+
+      <FadeInUp index={2}>
+        <RankingCard ranking={ranking} onOpen={onOpenRanking} />
+      </FadeInUp>
+
       <View style={styles.grid}>
         {MEDALS.map(([em, title, need], i) => (
           <Medal key={title} em={em} title={title} need={need} hist={hist} celebrate={fresh >= 0 && i >= fresh && i < unlocked} index={i} />
@@ -94,7 +101,7 @@ function Medal({ em, title, need, hist, celebrate, index }: { em: string; title:
   return (
     <View style={styles.cell}>
       {/* Solo los primeros entran en cascada; el resto ya está fuera de pantalla */}
-      {index < 8 ? <FadeInUp index={index + 2}>{card}</FadeInUp> : card}
+      {index < 8 ? <FadeInUp index={index + 3}>{card}</FadeInUp> : card}
     </View>
   );
 }

@@ -17,6 +17,8 @@ import { Ajustes, type Prefs, type PrefsUpdate } from './src/screens/Ajustes';
 import { Compartir } from './src/screens/Compartir';
 import { Bienvenida } from './src/screens/Bienvenida';
 import { useUpdates } from './src/lib/updates';
+import { useRanking } from './src/lib/ranking';
+import { RankingScreen } from './src/screens/RankingScreen';
 import { BORDER, C } from './src/theme';
 
 type Tab = 'hoy' | 'logros' | 'ajustes';
@@ -48,6 +50,8 @@ function Main() {
   const [skipSetup, setSkipSetup] = useState(false); // "Ver la app primero" (solo esta sesión)
   const [showPrivacy, setShowPrivacy] = useState(false);
   const updates = useUpdates(); // busca versión nueva en GitHub al abrir la app
+  const ranking = useRanking(); // Top 25 (opcional): envía tu total si estás unido
+  const [showRanking, setShowRanking] = useState(false);
 
   const tabRef = useRef<Tab>('hoy');
   tabRef.current = tab;
@@ -97,6 +101,7 @@ function Main() {
 
   // Bienvenida mientras el servicio no esté activado (se va sola al activarlo) o desde Ajustes → Privacidad
   if (showPrivacy) return <Bienvenida mode="info" onClose={() => setShowPrivacy(false)} />;
+  if (showRanking) return <RankingScreen ranking={ranking} onClose={() => setShowRanking(false)} />;
   if (!enabled && !skipSetup) return <Bienvenida mode="setup" onClose={() => setSkipSetup(true)} />;
 
   return (
@@ -104,7 +109,7 @@ function Main() {
       {/* key por pestaña: cada pantalla entra con su cascada al abrirla */}
       <ScrollView key={tab} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {tab === 'hoy' && <Hoy stats={stats} updates={updates} onShare={() => setSharing(true)} onSettings={() => setTab('ajustes')} />}
-        {tab === 'logros' && <Logros histCm={stats.histCm} />}
+        {tab === 'logros' && <Logros histCm={stats.histCm} ranking={ranking} onOpenRanking={() => setShowRanking(true)} />}
         {tab === 'ajustes' && (
           <Ajustes
             stats={stats}

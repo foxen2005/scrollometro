@@ -55,6 +55,34 @@ class ScrollTrackerModule : Module() {
       ScrollStore.setPrefs(goalM, notifEnabled, phrases, mascot)
     }
 
+    // ---------- Ranking (dreamlo, opcional) ----------
+
+    Function("rankingAvailable") { Leaderboard.available }
+
+    Function("getRankingProfile") { Leaderboard.profile(context) }
+
+    // Red en un hilo aparte: nunca bloquear el hilo de JS
+    AsyncFunction("joinRanking") { nick: String, promise: Promise ->
+      val ctx = context
+      ScrollStore.ensureLoaded(ctx)
+      Thread { runCatching { Leaderboard.join(ctx, nick) }.fold({ promise.resolve(it) }, { promise.reject("ERR_RANKING", it.message, it) }) }.start()
+    }
+
+    AsyncFunction("submitRanking") { promise: Promise ->
+      val ctx = context
+      ScrollStore.ensureLoaded(ctx)
+      Thread { runCatching { Leaderboard.submit(ctx) }.fold({ promise.resolve(null) }, { promise.reject("ERR_RANKING", it.message, it) }) }.start()
+    }
+
+    AsyncFunction("leaveRanking") { promise: Promise ->
+      val ctx = context
+      Thread { runCatching { Leaderboard.leave(ctx) }.fold({ promise.resolve(null) }, { promise.reject("ERR_RANKING", it.message, it) }) }.start()
+    }
+
+    AsyncFunction("fetchRanking") { promise: Promise ->
+      Thread { runCatching { Leaderboard.top() }.fold({ promise.resolve(it) }, { promise.reject("ERR_RANKING", it.message, it) }) }.start()
+    }
+
     // ---------- Actualizaciones (GitHub Releases) ----------
 
     Events("onUpdateProgress", "onInstallStatus")

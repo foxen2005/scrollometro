@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Todo el tráfico de la app exige HTTPS, salvo dreamlo.com (ranking), que en su plan gratis solo funciona por HTTP.
+  Lo único que viaja ahí es el apodo, los metros totales y la mascota de quien se une al ranking.
+-->
+<network-security-config>
+  <base-config cleartextTrafficPermitted="false" />
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="false">dreamlo.com</domain>
+  </domain-config>
+  <!-- Solo para builds de desarrollo: el servidor Metro corre en la PC por HTTP -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="false">localhost</domain>
+    <domain includeSubdomains="false">10.0.2.2</domain>
+  </domain-config>
+</network-security-config>

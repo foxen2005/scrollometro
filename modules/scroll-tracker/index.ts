@@ -64,6 +64,14 @@ declare class ScrollTrackerNative extends NativeModule<Events> {
   getEvents(): ScrollEvent[];
   reset(): void;
   setPrefs(goalM: number, notifEnabled: boolean, phrases: boolean, mascot: MascotKey): void;
+  // Ranking (dreamlo, opcional)
+  rankingAvailable(): boolean;
+  getRankingProfile(): { name: string | null; lastSubmit: number };
+  joinRanking(nick: string): Promise<string>;
+  submitRanking(): Promise<void>;
+  leaveRanking(): Promise<void>;
+  /** JSON crudo de dreamlo */
+  fetchRanking(): Promise<string>;
   // Actualizaciones desde GitHub Releases
   getVersion(): { versionName: string; versionCode: number };
   canInstallUpdates(): boolean;
