@@ -59,7 +59,8 @@ export function RankingScreen({ ranking, onClose }: { ranking: Ranking; onClose:
           const mine = e.name === ranking.me;
           return (
             <FadeInUp key={e.name} index={Math.min(i + 1, 8)}>
-              <View style={[styles.row, mine && styles.mine, i < 3 && styles.podium]}>
+              {/* "mine" va al final para que tu fila se vea en lima aunque estés en el podio */}
+              <View style={[styles.row, i < 3 && styles.podium, mine && styles.mine]}>
                 <Txt w="black" style={styles.pos}>{MEDAL[i] ?? `#${e.position}`}</Txt>
                 <Mascot k={e.mascot} stage={0} size={38} still />
                 <View style={{ flex: 1, minWidth: 0 }}>
