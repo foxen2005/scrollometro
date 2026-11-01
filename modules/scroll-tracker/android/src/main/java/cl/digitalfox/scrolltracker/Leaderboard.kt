@@ -67,16 +67,24 @@ object Leaderboard {
     context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putLong(KEY_LAST, System.currentTimeMillis()).apply()
   }
 
-  private fun get(url: String): String {
+  private fun get(url: String, retry: Boolean = true): String {
     val conn = URL(url).openConnection() as HttpURLConnection
-    try {
+    val body = try {
       conn.connectTimeout = 15_000
       conn.readTimeout = 15_000
       val code = conn.responseCode
       if (code != 200) error("El ranking respondió $code")
-      return conn.inputStream.bufferedReader().use { it.readText() }
+      conn.inputStream.bufferedReader().use { it.readText() }
     } finally {
       conn.disconnect()
     }
+    // dreamlo responde 200 con texto "ERROR SAME REQUEST WITHIN A SECOND|…" si llega la misma URL dos veces
+    // en menos de un segundo (anti-spam). Se espera y se reintenta una vez.
+    if (body.startsWith("ERROR SAME REQUEST") && retry) {
+      Thread.sleep(1_100)
+      return get(url, retry = false)
+    }
+    if (body.startsWith("ERROR")) error("dreamlo: ${body.substringBefore('|').lowercase()}")
+    return body
   }
 }

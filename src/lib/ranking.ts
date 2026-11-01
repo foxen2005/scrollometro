@@ -1,5 +1,5 @@
 // Ranking mundial (Top 25) sobre dreamlo. Opcional: solo se envía algo si el usuario se une.
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ScrollTracker, { type MascotKey } from '../../modules/scroll-tracker';
 
 export type RankEntry = { name: string; nick: string; tag: string; meters: number; mascot: MascotKey; position: number };
@@ -40,17 +40,24 @@ export function useRanking() {
   const [boardError, setBoardError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (!available) return;
+  // Si ya hay una consulta del tablero en curso se reutiliza: dreamlo rechaza la misma URL dos veces en un segundo
+  const inFlight = useRef<Promise<void> | null>(null);
+  const refresh = useCallback(() => {
+    if (!available) return Promise.resolve();
+    if (inFlight.current) return inFlight.current;
     setLoading(true);
     setBoardError(null);
-    try {
-      setBoard(parseBoard(await ScrollTracker.fetchRanking()));
-    } catch (e) {
-      setBoardError(String((e as Error).message ?? e));
-    } finally {
-      setLoading(false);
-    }
+    inFlight.current = (async () => {
+      try {
+        setBoard(parseBoard(await ScrollTracker.fetchRanking()));
+      } catch (e) {
+        setBoardError(String((e as Error).message ?? e));
+      } finally {
+        setLoading(false);
+        inFlight.current = null;
+      }
+    })();
+    return inFlight.current;
   }, [available]);
 
   /** Envía el total si estás unido y pasó una hora desde el último envío (o si se fuerza). */

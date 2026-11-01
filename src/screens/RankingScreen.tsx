@@ -45,8 +45,9 @@ export function RankingScreen({ ranking, onClose }: { ranking: Ranking; onClose:
         </FadeInUp>
 
         {ranking.loading && !ranking.board && <Txt w="bold" style={{ color: C.muted }}>Cargando ranking…</Txt>}
-        {!!ranking.boardError && (
-          <Card><Txt w="bold">No se pudo cargar el ranking 😵</Txt><Txt w="medium" style={{ color: C.muted }}>{ranking.boardError}</Txt></Card>
+        {/* Si ya hay tablero, un fallo al refrescar no se muestra (sobra); solo avisa cuando no hay nada que ver */}
+        {!!ranking.boardError && !ranking.board && (
+          <Card><Txt w="bold">Sin conexión con el ranking 😵</Txt><Txt w="medium" style={{ color: C.muted }}>Revisa tu señal y toca 🔄 para reintentar.</Txt></Card>
         )}
         {!!ranking.actionError && (
           <Card style={{ borderColor: C.tomatoInk }}><Txt w="bold" style={{ color: C.tomatoInk }}>{ranking.actionError}</Txt></Card>
