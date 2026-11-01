@@ -2,10 +2,23 @@ import { useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
 import ScrollTracker, { type MascotKey, type ScrollEvent, type Stats } from '../../modules/scroll-tracker';
 import { Mascot } from '../components/Mascot';
+import { UpdateCard } from '../components/UpdateCard';
+import type { UpdateState, Updates } from '../lib/updates';
 import { Btn, Card, FadeInUp, PressScale, Toggle, Txt } from '../components/ui';
 import { fmtDist } from '../lib/content';
 import { MASCOTS } from '../lib/mascots';
 import { BORDER, C } from '../theme';
+
+const UPDATE_STATUS: Record<UpdateState['kind'], string> = {
+  idle: 'Se revisa sola al abrir la app',
+  checking: 'Buscando en GitHub…',
+  latest: 'Estás al día ✅',
+  available: 'Hay una versión nueva 🎉',
+  needsPermission: 'Falta permitir la instalación',
+  downloading: 'Descargando…',
+  confirming: 'Esperando tu confirmación',
+  error: 'No se pudo revisar',
+};
 
 const GOALS = [100, 200, 300, 500, 750, 1000, 1500, 2000, 3000, 5000, 10000];
 const METHOD_LABEL: Record<string, string> = { DELTA: 'delta', SCROLL_Y: 'posición', INDEX: 'índice', NONE: 'sin datos' };
@@ -21,10 +34,12 @@ export function Ajustes({
   onPrefs,
   onReset,
   onPrivacy,
+  updates,
 }: {
   stats: Stats;
   enabled: boolean;
   events: ScrollEvent[];
+  updates: Updates;
   onPrefs: (update: PrefsUpdate) => void;
   onReset: () => void;
   onPrivacy: () => void;
@@ -162,6 +177,29 @@ export function Ajustes({
       </FadeInUp>
 
       <FadeInUp index={5}>
+        <Group title="Versión">
+          <Card>
+            <View style={styles.set}>
+              <View style={{ flex: 1 }}>
+                <Txt w="bold">Scrollómetro {updates.current}</Txt>
+                <Txt w="medium" style={styles.small}>
+                  {updates.state.kind === 'error' && 'release' in updates.state && updates.state.release
+                    ? 'No se pudo actualizar' // falló la descarga o la instalación, no la búsqueda
+                    : UPDATE_STATUS[updates.state.kind]}
+                </Txt>
+                {updates.state.kind === 'error' && !('release' in updates.state && updates.state.release) && (
+                  <Txt w="medium" style={styles.small}>{updates.state.message}</Txt>
+                )}
+              </View>
+              <Btn label="Buscar" onPress={() => updates.check(true)} />
+            </View>
+          </Card>
+        </Group>
+      </FadeInUp>
+
+      <UpdateCard updates={updates} />
+
+      <FadeInUp index={6}>
         <PressScale onPress={confirmReset} style={styles.danger}>
           <Txt w="black" style={{ color: C.tomatoInk }}>Reiniciar hoy</Txt>
         </PressScale>

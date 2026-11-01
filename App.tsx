@@ -16,6 +16,7 @@ import { Logros } from './src/screens/Logros';
 import { Ajustes, type Prefs, type PrefsUpdate } from './src/screens/Ajustes';
 import { Compartir } from './src/screens/Compartir';
 import { Bienvenida } from './src/screens/Bienvenida';
+import { useUpdates } from './src/lib/updates';
 import { BORDER, C } from './src/theme';
 
 type Tab = 'hoy' | 'logros' | 'ajustes';
@@ -46,6 +47,7 @@ function Main() {
   const [sharing, setSharing] = useState(false);
   const [skipSetup, setSkipSetup] = useState(false); // "Ver la app primero" (solo esta sesión)
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const updates = useUpdates(); // busca versión nueva en GitHub al abrir la app
 
   const tabRef = useRef<Tab>('hoy');
   tabRef.current = tab;
@@ -101,10 +103,18 @@ function Main() {
     <View style={[styles.root, { paddingTop: insets.top }]}>
       {/* key por pestaña: cada pantalla entra con su cascada al abrirla */}
       <ScrollView key={tab} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {tab === 'hoy' && <Hoy stats={stats} onShare={() => setSharing(true)} onSettings={() => setTab('ajustes')} />}
+        {tab === 'hoy' && <Hoy stats={stats} updates={updates} onShare={() => setSharing(true)} onSettings={() => setTab('ajustes')} />}
         {tab === 'logros' && <Logros histCm={stats.histCm} />}
         {tab === 'ajustes' && (
-          <Ajustes stats={stats} enabled={enabled} events={events} onPrefs={setPrefs} onReset={reset} onPrivacy={() => setShowPrivacy(true)} />
+          <Ajustes
+            stats={stats}
+            enabled={enabled}
+            events={events}
+            updates={updates}
+            onPrefs={setPrefs}
+            onReset={reset}
+            onPrivacy={() => setShowPrivacy(true)}
+          />
         )}
       </ScrollView>
 

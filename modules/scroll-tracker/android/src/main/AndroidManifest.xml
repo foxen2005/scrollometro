@@ -24,6 +24,11 @@
         android:resource="@xml/scroll_tracker_service" />
     </service>
 
+    <!-- Resultado del instalador de actualizaciones (solo lo invoca el sistema con nuestro PendingIntent) -->
+    <receiver
+      android:name="cl.digitalfox.scrolltracker.UpdateInstallReceiver"
+      android:exported="false" />
+
     <receiver
       android:name="cl.digitalfox.scrolltracker.ScrollWidgetSmall"
       android:exported="false"

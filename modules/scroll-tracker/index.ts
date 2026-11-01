@@ -1,4 +1,4 @@
-import { requireNativeModule } from 'expo';
+import { NativeModule, requireNativeModule } from 'expo';
 
 export type Method = 'DELTA' | 'SCROLL_Y' | 'INDEX' | 'NONE';
 
@@ -47,7 +47,16 @@ export type ScrollEvent = {
   cm: number;
 };
 
-type ScrollTrackerNative = {
+export type UpdateProgress = { received: number; total: number };
+
+export type InstallStatus = { status: 'pending' | 'success' | 'failure'; message: string | null };
+
+type Events = {
+  onUpdateProgress: (p: UpdateProgress) => void;
+  onInstallStatus: (s: InstallStatus) => void;
+};
+
+declare class ScrollTrackerNative extends NativeModule<Events> {
   isServiceEnabled(): boolean;
   openAccessibilitySettings(): void;
   openAppDetails(): void;
@@ -55,6 +64,14 @@ type ScrollTrackerNative = {
   getEvents(): ScrollEvent[];
   reset(): void;
   setPrefs(goalM: number, notifEnabled: boolean, phrases: boolean, mascot: MascotKey): void;
-};
+  // Actualizaciones desde GitHub Releases
+  getVersion(): { versionName: string; versionCode: number };
+  canInstallUpdates(): boolean;
+  openInstallPermission(): void;
+  getInstallError(): string | null;
+  downloadAndInstall(url: string): Promise<void>;
+  /** Abre el diálogo de Android "¿Actualizar esta app?" si quedó pendiente. Devuelve si había uno. */
+  showInstallConfirm(): boolean;
+}
 
 export default requireNativeModule<ScrollTrackerNative>('ScrollTracker');

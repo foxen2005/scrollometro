@@ -4,6 +4,8 @@ import Svg, { Defs, LinearGradient, Pattern, Rect, Stop } from 'react-native-svg
 import type { Stats } from '../../modules/scroll-tracker';
 import { Card, Chip, FadeInUp, PressScale, Txt, usePop, useReduceMotion } from '../components/ui';
 import { Mascot } from '../components/Mascot';
+import { UpdateCard } from '../components/UpdateCard';
+import type { Updates } from '../lib/updates';
 import { DOPA, appColors, dopaLevel, equivalences, fmtDist, stageOf } from '../lib/content';
 import { MASCOTS } from '../lib/mascots';
 import { BORDER, C, EASE_OUT, EASE_SINE, STAGE_BG } from '../theme';
@@ -15,7 +17,7 @@ const today = () => {
   return `${DAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
 };
 
-export function Hoy({ stats, onShare, onSettings }: { stats: Stats; onShare: () => void; onSettings: () => void }) {
+export function Hoy({ stats, updates, onShare, onSettings }: { stats: Stats; updates: Updates; onShare: () => void; onSettings: () => void }) {
   const m = stats.totalCm / 100;
   const s = stageOf(m);
   const mk = MASCOTS[stats.mascot];
@@ -34,6 +36,8 @@ export function Hoy({ stats, onShare, onSettings }: { stats: Stats; onShare: () 
           </View>
         </View>
       </FadeInUp>
+
+      <UpdateCard updates={updates} />
 
       <FadeInUp index={1}>
         <Hero stage={s} mascot={stats.mascot} line={mk.lines[s]} stageName={mk.stages[s]} />

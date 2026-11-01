@@ -20,6 +20,42 @@
         ],
         "createdAt": "2026-10-31T20:25:29.661Z",
         "reason": "Jean pidió corregir solo el globo y los títulos de medalla (hecho); lo que queda es texto de una línea (números grandes, nombres de app) en la maqueta aprobada"
+      },
+      {
+        "rule": "clipped-overflow-container",
+        "value": "*",
+        "files": [
+          "docs/index.html"
+        ],
+        "createdAt": "2026-10-31T23:31:52.894Z",
+        "reason": "Decisión de Felix: main usa overflow-x:clip solo para que las etiquetas decorativas del héroe no generen scroll horizontal en móvil; no hay menús ni tooltips dentro"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "docs/index.html"
+        ],
+        "createdAt": "2026-10-31T23:32:20.504Z",
+        "reason": "user confirmed: Jean aprobó la paleta crema/tinta de la maqueta (buenísimo todo); la web usa los mismos tokens de la app (src/theme.ts)"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "docs/privacidad.html"
+        ],
+        "createdAt": "2026-10-31T23:32:21.066Z",
+        "reason": "user confirmed: Jean aprobó la paleta crema/tinta de la maqueta (buenísimo todo); la web usa los mismos tokens de la app (src/theme.ts)"
+      },
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "docs/index.html"
+        ],
+        "createdAt": "2026-10-31T23:32:21.667Z",
+        "reason": "Decisión de Felix: ticker decorativo (aria-hidden) de equivalencias, temático para una app de scroll; se pausa con hover y se apaga con prefers-reduced-motion"
       }
     ]
   }

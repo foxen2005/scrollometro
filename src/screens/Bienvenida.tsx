@@ -9,7 +9,7 @@ const PRIVACY: [string, string][] = [
   ['✅', 'Solo recibe cuántos píxeles se movió la pantalla y en qué app.'],
   ['🚫', 'No lee textos, fotos, videos, mensajes ni lo que escribes.'],
   ['🚫', 'No toma capturas ni guarda nada de lo que ves.'],
-  ['🚫', 'No tiene permiso de internet: nada sale de tu teléfono.'],
+  ['🌐', 'Solo se conecta a GitHub para ver si hay versión nueva. Nunca envía tus datos.'],
   ['🚫', 'Sin cuentas, sin anuncios, sin rastreo.'],
   ['✅', 'Lo apagas cuando quieras en Accesibilidad.'],
 ];

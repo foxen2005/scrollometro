@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scrollómetro — ¿cuánto mide tu scroll?</title>
+<meta name="description" content="App para Android que mide en centímetros, metros y kilómetros todo lo que scrolleas en TikTok, Instagram y compañía. Mascotas, logros absurdos y una barra de dopamina de broma. Gratis y con el código a la vista.">
+<meta property="og:title" content="Scrollómetro — ¿cuánto mide tu scroll?">
+<meta property="og:description" content="Mide en cm, metros y km lo que tu pulgar recorre. Gratis, sin cuentas, código a la vista.">
+<meta property="og:image" content="img/logo.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Tokens de la app (src/theme.ts) */
+  :root {
+    --bg: #fff4e4; --ink: #23192e; --card: #fff; --lime: #c6f45e; --tomato: #ff6b57; --tomato-ink: #c4311d;
+    --sky: #8fd3ff; --grape: #a88bff; --sun: #ffd24a; --pink: #ff9ec7; --muted: #5f5570; --track: #f1ecf5;
+    --line: 2.5px solid var(--ink); --pop: 4px 4px 0 var(--ink); --pop-lg: 6px 6px 0 var(--ink);
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-sine: cubic-bezier(0.37, 0, 0.63, 1);
+    --gutter: clamp(18px, 5vw, 72px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Baloo 2', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 18px; line-height: 1.55; }
+  /* clip (no hidden): recorta las etiquetas del héroe sin crear un contenedor de scroll */
+  main { overflow-x: clip; }
+  a { color: inherit; }
+  h1, h2, h3 { line-height: 1.05; font-weight: 800; text-wrap: balance; }
+  p { text-wrap: pretty; }
+  :focus-visible { outline: 3px solid var(--grape); outline-offset: 3px; border-radius: 6px; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+  section { padding: clamp(56px, 8vw, 104px) 0; }
+  .card { background: var(--card); border: var(--line); border-radius: 22px; box-shadow: var(--pop); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; border: 2px solid var(--ink); border-radius: 999px; padding: 2px 12px; background: #fff; }
+  .kicker { font-weight: 800; font-size: 15px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  h2 { font-size: clamp(2rem, 4.4vw, 3.2rem); margin-bottom: 14px; }
+  .lede { font-size: clamp(1.05rem, 1.6vw, 1.25rem); color: #3c3247; max-width: 60ch; }
+
+  /* Botones */
+  .btn { display: inline-flex; align-items: center; gap: 10px; font: inherit; font-weight: 800; font-size: 18px; text-decoration: none;
+    border: var(--line); border-radius: 16px; padding: 10px 20px; background: var(--lime); box-shadow: var(--pop);
+    transition: transform .16s var(--ease-out), box-shadow .16s var(--ease-out); }
+  .btn.ghost { background: #fff; }
+  .btn small { font-weight: 600; font-size: 14px; color: var(--muted); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+  @media (hover: hover) and (pointer: fine) { .btn:hover { transform: translate(-1px, -2px); box-shadow: 6px 7px 0 var(--ink); } }
+
+  /* Nav */
+  nav { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); border-bottom: var(--line); }
+  nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 22px; text-decoration: none; }
+  .brand img { width: 38px; height: 38px; border-radius: 12px; border: 2px solid var(--ink); }
+  nav ul { display: flex; gap: 4px; list-style: none; align-items: center; }
+  nav ul a { text-decoration: none; font-weight: 700; padding: 6px 12px; border-radius: 999px; }
+  nav ul a:hover { background: #fff; }
+  nav .btn { font-size: 15px; padding: 4px 14px; box-shadow: 3px 3px 0 var(--ink); }
+  @media (max-width: 720px) { nav ul li:not(:last-child) { display: none; } }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(28px, 5vw, 64px); align-items: center; padding: clamp(40px, 7vw, 96px) 0 clamp(48px, 7vw, 88px); }
+  @media (max-width: 880px) { .hero { grid-template-columns: 1fr; } .hero-art { order: -1; max-width: 340px; margin: 0 auto; } }
+  .hero h1 { font-size: clamp(2.8rem, 7vw, 5.4rem); letter-spacing: -.02em; margin: 14px 0 18px; }
+  .hero h1 mark { background: none; color: inherit; position: relative; white-space: nowrap; }
+  .hero h1 mark::after { content: ''; position: absolute; left: -4px; right: -4px; bottom: .08em; height: .32em; background: var(--lime); z-index: -1; border-radius: 6px; transform: rotate(-1.5deg); }
+  .hero .cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 28px; }
+  .hero .meta { margin-top: 16px; color: var(--muted); font-weight: 600; font-size: 15px; }
+  .hero-art { position: relative; }
+  .hero-art .logo { width: 100%; border-radius: 40px; border: 3px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); animation: bob 3.2s var(--ease-sine) infinite alternate; display: block; }
+  .sticker { position: absolute; font-weight: 800; font-size: 17px; background: #fff; border: var(--line); border-radius: 14px; padding: 4px 12px; box-shadow: var(--pop); white-space: nowrap; }
+  .sticker.s1 { top: 6%; left: -6%; transform: rotate(-6deg); background: var(--sun); }
+  .sticker.s2 { bottom: 10%; right: -5%; transform: rotate(5deg); background: var(--pink); }
+  .sticker.s3 { bottom: -4%; left: 8%; transform: rotate(-3deg); }
+  @keyframes bob { from { transform: translateY(0) rotate(-1deg); } to { transform: translateY(-10px) rotate(1deg); } }
+
+  /* Medidor de esta página */
+  .meter-pill { position: fixed; right: 16px; bottom: 16px; z-index: 30; display: flex; align-items: center; gap: 10px;
+    background: var(--ink); color: #fff; border-radius: 18px; padding: 8px 14px 8px 10px; box-shadow: 4px 4px 0 var(--grape); font-weight: 700; }
+  .meter-pill b { font-size: 22px; color: var(--lime); font-weight: 800; min-width: 74px; display: inline-block; }
+  .meter-pill .ruler { font-size: 22px; }
+  .meter-pill small { display: block; font-size: 12px; color: #cfc6da; line-height: 1.1; font-weight: 600; }
+  .toast { position: fixed; right: 16px; bottom: 84px; z-index: 31; background: var(--sun); border: var(--line); border-radius: 16px; box-shadow: var(--pop);
+    padding: 8px 14px; font-weight: 800; transform: translateY(12px) scale(.96); opacity: 0; pointer-events: none;
+    transition: transform .25s var(--ease-out), opacity .25s var(--ease-out); }
+  .toast.on { transform: none; opacity: 1; }
+
+  /* Ticker de equivalencias */
+  .ticker { border-block: var(--line); background: var(--grape); overflow: hidden; padding: 12px 0; }
+  .ticker .track { display: flex; gap: 40px; width: max-content; animation: ticker 40s linear infinite; }
+  .ticker span { font-weight: 800; font-size: 20px; color: #fff; white-space: nowrap; -webkit-text-stroke: 1px var(--ink); paint-order: stroke fill; }
+  @keyframes ticker { to { transform: translateX(-50%); } }
+  .ticker:hover .track { animation-play-state: paused; }
+
+  /* Mascotas */
+  .mascots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 36px; }
+  @media (max-width: 860px) { .mascots { grid-template-columns: 1fr; max-width: 420px; } }
+  .mascot { padding: 0; overflow: hidden; }
+  .mascot .stage-bg { height: 230px; display: grid; place-items: end center; transition: background-color .4s ease; border-bottom: var(--line); }
+  .mascot svg { width: 200px; height: 212px; display: block; }
+  .mascot .m-anim { transform-box: fill-box; transform-origin: 50% 100%; }
+  .mascot .body { padding: 14px 18px 18px; }
+  .mascot h3 { font-size: 26px; }
+  .mascot .state { display: inline-block; background: var(--ink); color: #fff; font-weight: 700; font-size: 14px; border-radius: 999px; padding: 0 10px; margin: 6px 0 8px; }
+  .mascot .line { font-weight: 700; font-size: 17px; min-height: 2.6em; }
+  .mascot .dots { display: flex; gap: 6px; margin-top: 8px; }
+  .mascot .dots i { width: 22px; height: 8px; border-radius: 4px; background: var(--track); border: 1.5px solid var(--ink); }
+  .mascot .dots i.on { background: var(--tomato); }
+  .s0 .m-anim { animation: m-bounce 1.6s var(--ease-sine) infinite alternate; }
+  .s1 .m-anim { animation: m-wobble 1.1s var(--ease-sine) infinite alternate; }
+  .s2 .m-anim { animation: m-droop 2.6s var(--ease-sine) infinite alternate; }
+  .s3 .m-anim { animation: m-lurch 1.4s linear infinite; }
+  @keyframes m-bounce { from { transform: translateY(0); } to { transform: translateY(-6px) scaleY(1.02); } }
+  @keyframes m-wobble { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+  @keyframes m-droop { from { transform: rotate(-1.5deg); } to { transform: rotate(2deg) scaleY(.965); } }
+  @keyframes m-lurch { 0%, 100% { transform: rotate(0); } 20% { transform: rotate(-4deg) translateX(-2px); } 55% { transform: rotate(3deg) translateX(2px); } 62% { transform: rotate(5deg) translateX(3px); } }
+
+  /* Funciones */
+  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 36px; }
+  @media (max-width: 900px) { .features { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
+  .feature { padding: 20px; }
+  .feature .em { font-size: 40px; line-height: 1; }
+  .feature h3 { font-size: 23px; margin: 10px 0 6px; }
+  .feature p { color: #3c3247; font-size: 17px; }
+
+  /* Capturas */
+  .shots { display: flex; gap: 22px; overflow-x: auto; padding: 8px 4px 22px; margin-top: 30px; scroll-snap-type: x mandatory; }
+  .shots figure { flex: none; width: 230px; scroll-snap-align: start; }
+  .shots img { width: 100%; border-radius: 26px; border: 3px solid var(--ink); box-shadow: var(--pop-lg); display: block; background: #fff; }
+  .shots figcaption { font-weight: 700; text-align: center; margin-top: 10px; }
+
+  /* Logros */
+  .medals { display: grid; grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); gap: 14px; margin-top: 30px; }
+  .medal { text-align: center; padding: 12px 8px; transition: background-color .3s ease; }
+  .medal .em { font-size: 34px; line-height: 1.2; display: block; }
+  .medal b { display: block; font-size: 15px; line-height: 1.25; }
+  .medal span { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .medal.off { background: #f3eff6; border-style: dashed; box-shadow: none; }
+  .medal.off .em { filter: grayscale(1); opacity: .35; }
+
+  /* Privacidad */
+  .privacy { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 860px) { .privacy { grid-template-columns: 1fr; } }
+  .plist { padding: 22px; display: grid; gap: 10px; }
+  .plist div { display: flex; gap: 12px; font-weight: 600; font-size: 17px; }
+  .plist div span:first-child { font-size: 20px; }
+
+  /* Instalación */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 32px; counter-reset: s; }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+  .step { padding: 20px; position: relative; }
+  .step::before { counter-increment: s; content: counter(s); position: absolute; top: -18px; left: 18px; width: 40px; height: 40px; border-radius: 50%;
+    background: var(--sun); border: var(--line); display: grid; place-items: center; font-weight: 800; font-size: 20px; }
+  .step h3 { font-size: 22px; margin: 10px 0 6px; }
+  .step p { font-size: 17px; color: #3c3247; }
+  .note { margin-top: 26px; padding: 18px 20px; background: var(--sky); }
+  .note b { font-size: 19px; }
+
+  footer { border-top: var(--line); padding: 30px 0 90px; font-weight: 600; color: var(--muted); }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; }
+
+  /* ===================== Movimiento (capa encima del diseño) ===================== */
+  :root { --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1); /* easeOutBack (easings.net): rebote juguetón */ }
+
+  /* Héroe: entra en cascada al abrir la página (se usan translate/scale sueltos para no pisar los transform existentes) */
+  @keyframes rise { from { opacity: 0; translate: 0 14px; } }
+  @keyframes pop-in { from { opacity: 0; scale: .92; } }
+  @keyframes drop-in { from { opacity: 0; translate: 0 -22px; } }
+  @keyframes underline { from { scale: 0 1; } }
+  .hero > div:first-child > * { animation: rise .6s var(--ease-out) both; }
+  .hero > div:first-child > :nth-child(2) { animation-delay: 80ms; }
+  .hero > div:first-child > :nth-child(3) { animation-delay: 160ms; }
+  .hero > div:first-child > :nth-child(4) { animation-delay: 240ms; }
+  .hero > div:first-child > :nth-child(5) { animation-delay: 320ms; }
+  .hero-art .logo { animation: pop-in .7s var(--ease-out) 150ms both, bob 3.2s var(--ease-sine) .85s infinite alternate; }
+  .sticker { animation: drop-in .55s var(--ease-back) both; }
+  .sticker.s1 { animation-delay: 650ms; }
+  .sticker.s2 { animation-delay: 780ms; }
+  .sticker.s3 { animation-delay: 910ms; }
+  /* El subrayado lima de "scroll" se dibuja de izquierda a derecha */
+  .hero h1 mark::after { transform-origin: left center; animation: underline .5s var(--ease-out) 520ms both; }
+
+  /* Revelado al bajar (lo activa un IntersectionObserver; sin JS todo queda visible) */
+  .reveal { opacity: 0; translate: 0 16px; transition: opacity .5s var(--ease-out), translate .5s var(--ease-out); transition-delay: var(--d, 0ms); }
+  .reveal.in { opacity: 1; translate: 0 0; }
+
+  /* El medidor se menea cuando desbloqueas un logro */
+  @keyframes wiggle { 0%, 100% { rotate: 0deg; } 25% { rotate: -6deg; } 60% { rotate: 5deg; } }
+  .meter-pill.wiggle { animation: wiggle .45s var(--ease-out); }
+
+  /* Detalles al pasar el mouse (solo con puntero fino: en touch un tap dispararía un hover falso) */
+  .feature .em, .shots img { transition: rotate .2s var(--ease-out), translate .2s var(--ease-out); }
+  @media (hover: hover) and (pointer: fine) {
+    .feature:hover .em { rotate: -10deg; }
+    .shots figure:hover img { translate: 0 -6px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; }
+    html { scroll-behavior: auto; }
+    /* Menos movimiento ≠ cero: el revelado queda como fundido, sin desplazamiento */
+    .reveal { translate: none; transition: opacity .3s ease; }
+    .feature .em, .shots img { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#"><img src="img/logo.png" alt="">Scrollómetro</a>
+    <ul>
+      <li><a href="#mascotas">Mascotas</a></li>
+      <li><a href="#logros">Logros</a></li>
+      <li><a href="#privacidad">Privacidad</a></li>
+      <li><a class="btn" href="https://github.com/foxen2005/scrollometro/releases/latest/download/Scrollometro.apk">Descargar</a></li>
+    </ul>
+  </div>
+</nav>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="chip">📱 Para Android · gratis · código a la vista</span>
+      <h1>¿Cuánto mide tu <mark>scroll</mark>?</h1>
+      <p class="lede">Scrollómetro cuenta en centímetros, metros y kilómetros todo lo que tu pulgar recorre en TikTok, Instagram, YouTube y compañía. Con mascotas que sufren contigo, logros absurdos y una barra de dopamina 100% científica de broma.</p>
+      <div class="cta">
+        <a class="btn" href="https://github.com/foxen2005/scrollometro/releases/latest/download/Scrollometro.apk">⬇️ Descargar APK <small id="ver"></small></a>
+        <a class="btn ghost" href="https://github.com/foxen2005/scrollometro">Ver el código</a>
+      </div>
+      <p class="meta">Android 7.0+ · ~24 MB · sin cuentas, sin anuncios, sin rastreo</p>
+    </div>
+    <div class="hero-art">
+      <img class="logo" src="img/logo.png" alt="El pulgar de Scrollómetro con lentes pixelados">
+      <span class="sticker s1">📏 1,3 km hoy</span>
+      <span class="sticker s2">🍳 Cerebro frito</span>
+      <span class="sticker s3">🏆 Everest con el dedo</span>
+    </div>
+  </div>
+
+  <div class="ticker" aria-hidden="true"><div class="track" id="ticker"></div></div>
+
+  <section id="mascotas">
+    <div class="wrap">
+      <p class="kicker">Tu compañero de scroll</p>
+      <h2>Tres mascotas que sufren contigo</h2>
+      <p class="lede">Cambian de humor según lo que llevas en el día: menos de 100 m, 500 m, 2 km… y más allá. Eliges una en Ajustes y te acompaña en la app, la notificación y el widget.</p>
+      <div class="mascots" id="mascots"></div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">Qué trae</p>
+      <h2>Un podómetro, pero para el pulgar</h2>
+      <div class="features">
+        <div class="card feature"><div class="em">📏</div><h3>Mide de verdad</h3><p>Suma los píxeles que se mueve cada scroll y los pasa a centímetros con la densidad real de tu pantalla.</p></div>
+        <div class="card feature"><div class="em">🔔</div><h3>Notificación fija</h3><p>El total del día, tus apps más scrolleadas y una frase de tu mascota, siempre a la vista.</p></div>
+        <div class="card feature"><div class="em">🎰</div><h3>Barra de dopamina</h3><p>Según tu ritmo de los últimos 10 minutos: de 😌 Zen total a 🍳 Cerebro frito. Es de broma, ¿ok?</p></div>
+        <div class="card feature"><div class="em">🏙️</div><h3>Equivalencias absurdas</h3><p>Canchas de fútbol, micros en fila, la Gran Torre Santiago, el camino a Puerto Montt…</p></div>
+        <div class="card feature"><div class="em">🧩</div><h3>Widgets</h3><p>2×2 y 4×2 para el escritorio, con la mascota, la distancia y la barra de dopamina.</p></div>
+        <div class="card feature"><div class="em">📸</div><h3>Tarjeta para historias</h3><p>Una imagen 1080×1920 lista para presumir (o confesar) cuánto scrolleaste hoy.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">Así se ve</p>
+      <h2>Crema, tinta y un pulgar con actitud</h2>
+      <div class="shots">
+        <figure><img src="img/hoy.png" alt="Pantalla Hoy" loading="lazy"><figcaption>Hoy</figcaption></figure>
+        <figure><img src="img/logros.png" alt="Logros" loading="lazy"><figcaption>Logros</figcaption></figure>
+        <figure><img src="img/ajustes.png" alt="Ajustes" loading="lazy"><figcaption>Ajustes</figcaption></figure>
+        <figure><img src="img/widgets.png" alt="Widgets" loading="lazy"><figcaption>Widgets</figcaption></figure>
+        <figure><img src="img/compartir.png" alt="Tarjeta para compartir" loading="lazy"><figcaption>Para historias</figcaption></figure>
+        <figure><img src="img/bienvenida.png" alt="Bienvenida" loading="lazy"><figcaption>Bienvenida</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section id="logros" style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">De 1 cm a la Luna</p>
+      <h2>32 logros absurdos</h2>
+      <p class="lede">Y ojo: <b>esta página también te está midiendo</b> (mira la esquina 👉). Sigue bajando y anda desbloqueando los primeros aquí mismo.</p>
+      <div class="medals" id="medals"></div>
+    </div>
+  </section>
+
+  <section id="privacidad" style="padding-top:0">
+    <div class="wrap privacy">
+      <div>
+        <p class="kicker">Privacidad</p>
+        <h2>Ve que te mueves. No qué ves.</h2>
+        <p class="lede">Scrollómetro usa el servicio de Accesibilidad porque es la única forma que da Android de saber que hubo scroll en otras apps. Por eso el código está abierto: puedes revisar exactamente qué hace.</p>
+        <p style="margin-top:16px"><a class="btn ghost" href="privacidad.html">Leer la política completa</a></p>
+      </div>
+      <div class="card plist">
+        <div><span>✅</span><span>Solo recibe cuántos píxeles se movió la pantalla y en qué app.</span></div>
+        <div><span>🚫</span><span>No lee textos, fotos, videos, mensajes ni lo que escribes.</span></div>
+        <div><span>🚫</span><span>No toma capturas ni guarda nada de lo que ves.</span></div>
+        <div><span>📱</span><span>Todo se guarda en tu teléfono. Sin servidor propio.</span></div>
+        <div><span>🌐</span><span>Solo se conecta a GitHub para ver si hay versión nueva.</span></div>
+        <div><span>🚫</span><span>Sin cuentas, sin anuncios, sin analítica.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instalar" style="padding-top:0">
+    <div class="wrap">
+      <p class="kicker">Instalación</p>
+      <h2>Tres pasos y a medir</h2>
+      <div class="steps">
+        <div class="card step"><h3>Descarga el APK</h3><p>Desde el teléfono, toca <a href="https://github.com/foxen2005/scrollometro/releases/latest/download/Scrollometro.apk">Descargar APK</a> y ábrelo para instalar.</p></div>
+        <div class="card step"><h3>Activa Accesibilidad</h3><p>La app te lleva: Accesibilidad → Apps instaladas → Scrollómetro → activar.</p></div>
+        <div class="card step"><h3>¿Sale «configuración restringida»?</h3><p>Info de la app → menú ⋮ → «Permitir ajustes restringidos», y vuelve a activarlo.</p></div>
+      </div>
+      <div class="card note">
+        <b>🛡️ ¿Play Protect se puso nervioso?</b>
+        <p>Es normal: Google revisa con lupa toda app que pide Accesibilidad y no viene de la Play Store. Si lo apagaste para instalar, vuelve a encenderlo después. Las actualizaciones llegan dentro de la app y Android solo las acepta si vienen firmadas con la misma llave.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Hecho en Chile 🇨🇱 por <a href="https://github.com/foxen2005">Digital Fox</a> · Código visible bajo <a href="https://github.com/foxen2005/scrollometro/blob/master/LICENSE.md">PolyForm Strict</a> · Nombre, logo y mascotas reservados</span>
+    <span><a href="https://github.com/foxen2005/scrollometro">GitHub</a> · <a href="privacidad.html">Privacidad</a></span>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="meter-pill" aria-live="off" title="Lo que llevas scrolleado en esta página (aprox.)">
+  <span class="ruler">📏</span>
+  <span><b id="pageDist">0 cm</b><small>en esta página</small></span>
+</div>
+
+<script>
+// ---------- Mascotas (mismos SVG que src/lib/mascots.ts) ----------
+const INK = '#23192e';
+const S = `stroke="${INK}" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"`;
+function eyes(s, lx, rx, y) {
+  const ball = (x, r = 9) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${INK}"/><circle cx="${x + 3}" cy="${y - 3}" r="3" fill="#fff"/>`;
+  if (s === 0) return ball(lx) + ball(rx);
+  if (s === 1) return ball(lx, 8) + ball(rx, 8) + `<path d="M${lx - 11} ${y - 14} L${lx + 7} ${y - 19}" ${S} fill="none"/><path d="M${rx - 7} ${y - 19} L${rx + 11} ${y - 14}" ${S} fill="none"/>`;
+  if (s === 2) return [lx, rx].map((x) => `<path d="M${x - 11} ${y - 2} Q${x} ${y + 8} ${x + 11} ${y - 2}" ${S} fill="none"/>`).join('');
+  return `<path d="M${lx - 8} ${y - 8} L${lx + 8} ${y + 8} M${lx + 8} ${y - 8} L${lx - 8} ${y + 8}" ${S}/><circle cx="${rx}" cy="${y}" r="12" fill="#fff" ${S}/><circle cx="${rx + 4}" cy="${y + 3}" r="3.5" fill="${INK}"/>`;
+}
+function mouth(s, cx, y) {
+  if (s === 0) return `<path d="M${cx - 16} ${y} Q${cx} ${y + 22} ${cx + 16} ${y} Z" fill="${INK}" ${S}/><path d="M${cx - 7} ${y + 9} Q${cx} ${y + 5} ${cx + 7} ${y + 9} Q${cx} ${y + 15} ${cx - 7} ${y + 9}Z" fill="#ff7a8a"/>`;
+  if (s === 1) return `<path d="M${cx - 16} ${y + 4} q5 -7 10 0 t10 0 t10 0" ${S} fill="none"/>`;
+  if (s === 2) return `<ellipse cx="${cx}" cy="${y + 4}" rx="9" ry="10" fill="${INK}"/><path d="M${cx - 6} ${y + 8} Q${cx - 6} ${y + 24} ${cx} ${y + 24} Q${cx + 6} ${y + 24} ${cx + 6} ${y + 8}Z" fill="#ff7a8a" stroke="${INK}" stroke-width="3"/>`;
+  return `<path d="M${cx - 18} ${y + 2} L${cx - 10} ${y + 8} L${cx - 2} ${y + 2} L${cx + 6} ${y + 8} L${cx + 14} ${y + 2} L${cx + 18} ${y + 5}" ${S} fill="none"/>`;
+}
+const cheeks = (s, lx, rx, y) => s < 2 ? `<ellipse cx="${lx - 8}" cy="${y}" rx="8" ry="5" fill="#ff8fab" opacity=".7"/><ellipse cx="${rx + 8}" cy="${y}" rx="8" ry="5" fill="#ff8fab" opacity=".7"/>` : '';
+const drop = (x, y, k = 1) => `<path d="M${x} ${y} q${8 * k} ${12 * k} 0 ${18 * k} q${-8 * k} ${-6 * k} 0 ${-18 * k}z" fill="#8fd3ff" stroke="${INK}" stroke-width="3"/>`;
+const sparkle = (x, y) => `<path d="M${x} ${y} l4 10 10 4 -10 4 -4 10 -4 -10 -10 -4 10 -4z" fill="#ffd24a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+function thumb(s) {
+  const skin = ['#ffcfa3', '#ffbe8f', '#f5ae8c', '#b5d99c'][s];
+  let o = `<path d="M52 222 V82 Q52 22 100 22 Q148 22 148 82 V222" fill="${skin}" ${S}/><path d="M70 84 Q70 40 100 40 Q130 40 130 84 Q130 96 118 96 H82 Q70 96 70 84Z" fill="#ffeadb" ${S}/><path d="M72 196 q14 6 28 0 M100 206 q14 6 28 0" ${S} fill="none" opacity=".6"/>`;
+  o += cheeks(s, 80, 120, 146) + eyes(s, 80, 120, 128) + mouth(s, 100, 154);
+  if (s === 0) o += sparkle(166, 30) + sparkle(30, 70);
+  if (s === 1) o += drop(160, 66) + drop(36, 96, 0.8);
+  if (s === 2) o += `<g transform="rotate(-24 100 66)"><rect x="74" y="58" width="52" height="17" rx="8.5" fill="#ffd9a8" stroke="${INK}" stroke-width="3"/></g>` + drop(162, 80);
+  if (s === 3) o += `<path d="M62 112 L98 104" ${S} fill="none"/><path d="M70 104 l4 12 M82 101 l4 12 M92 99 l4 12" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>`;
+  return o;
+}
+function snail(s) {
+  const body = ['#d7ee8c', '#d7ee8c', '#ffb38a', '#c4d9ff'][s];
+  let o = `<path d="M14 206 Q14 182 44 180 H146 Q152 180 152 166 V124 Q152 96 174 96 Q196 96 196 124 V184 Q196 206 172 206 Z" fill="${body}" ${S}/><path d="M166 100 L158 62 M184 100 L190 62" ${S}/><circle cx="88" cy="124" r="58" fill="#ffb86b" ${S}/><path d="M90 126 a8 8 0 1 1 8 -8 a17 17 0 1 1 -17 17 a28 28 0 1 1 28 -28 a40 40 0 1 1 -40 40" ${S} fill="none"/>`;
+  const ex = [158, 190], ey = 56;
+  ex.forEach((x) => (o += `<circle cx="${x}" cy="${ey}" r="12" fill="#fff" ${S}/>`));
+  if (s === 0) ex.forEach((x) => (o += `<circle cx="${x}" cy="${ey - 2}" r="6" fill="${INK}"/>`));
+  if (s === 1) ex.forEach((x) => (o += `<circle cx="${x - 5}" cy="${ey + 3}" r="4.5" fill="${INK}"/><path d="M${x - 12} ${ey - 1} A12 12 0 0 1 ${x + 12} ${ey - 1}Z" fill="${body}"/><path d="M${x - 12} ${ey - 1} H${x + 12}" ${S}/>`));
+  if (s === 2) o += `<circle cx="158" cy="${ey + 3}" r="4.5" fill="${INK}"/><circle cx="190" cy="${ey + 3}" r="4.5" fill="${INK}"/><path d="M146 ${ey - 6} L170 ${ey + 1} M202 ${ey - 6} L178 ${ey + 1}" ${S}/><text x="104" y="40" font-size="30">💢</text>`;
+  if (s === 3) ex.forEach((x) => (o += `<circle cx="${x}" cy="${ey + 2}" r="5" fill="${INK}"/><path d="M${x} ${ey + 12} q-4 20 2 40" stroke="#5cb8ff" stroke-width="5" stroke-linecap="round" fill="none"/>`));
+  o += [`<ellipse cx="174" cy="144" rx="5" ry="7" fill="${INK}"/>`, `<path d="M164 146 H184" ${S}/>`, `<path d="M162 152 Q174 140 186 152" ${S} fill="none"/>`, `<path d="M160 154 q4 -12 14 -12 q10 0 14 12" fill="${INK}" ${S}/>`][s];
+  return o;
+}
+function brain(s) {
+  const c = ['#ffb3c7', '#ffa3b5', '#ff9a7a', '#e8b867'][s];
+  const lobes = [[68, 92, 38], [108, 76, 40], [146, 98, 34], [58, 132, 34], [100, 138, 44], [146, 136, 34]];
+  let o = '';
+  if (s === 3) o += `<path d="M178 196 L204 182" stroke="${INK}" stroke-width="12" stroke-linecap="round"/><ellipse cx="100" cy="198" rx="80" ry="17" fill="#3a3646" ${S}/><ellipse cx="100" cy="186" rx="62" ry="10" fill="#fff6d6" stroke="${INK}" stroke-width="3"/>`;
+  o += `<g transform="translate(0 ${s === 3 ? -12 : 0})">` + lobes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" ${S}/>`).join('') + lobes.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r - 2.6}" fill="${c}"/>`).join('');
+  o += cheeks(s, 84, 124, 140) + eyes(s, 84, 124, 122) + mouth(s, 104, 148);
+  if (s === 0) o += sparkle(170, 34);
+  if (s === 2) o += `<path d="M76 38 q-8 -10 0 -18 t0 -18 M106 30 q-8 -10 0 -18 t0 -18 M136 38 q-8 -10 0 -18 t0 -18" stroke="#8a8494" stroke-width="5" stroke-linecap="round" fill="none"/>`;
+  return o + '</g>';
+}
+const MASCOTS = [
+  ['Pulgar', thumb, ['Fresquito', 'Sudando la gota', 'Pide vacaciones', 'Pulgar zombie'], ['¡Listo pa’l día! 💪', 'Uff… ¿otro video más?', 'No siento la uña. Ayuda.', 'Braaains… digo, reels…']],
+  ['Caracol', snail, ['Impresionado', 'Celoso', 'Ofendido', 'Llorando en baba'], ['Wow, ¡qué rapidez!', 'Yo hago eso en 3 días…', 'No te hablo.', 'Nunca seré tan rápido 😭']],
+  ['Cerebro', brain, ['Fresco', 'Tibio', 'Humeando', 'Frito'], ['Todo bajo control 😌', 'Se está poniendo tibio esto…', '¿Huele a quemado o soy yo?', 'Listo pa’ la marraqueta 🍳']],
+];
+const STAGE_BG = ['#8fd3ff', '#ffd24a', '#ffb38a', '#b9e39b'];
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mascotsEl = document.getElementById('mascots');
+mascotsEl.innerHTML = MASCOTS.map(([name], i) => `
+  <article class="card mascot" data-i="${i}">
+    <div class="stage-bg"></div>
+    <div class="body"><h3>${name}</h3><span class="state"></span><p class="line"></p><div class="dots">${'<i></i>'.repeat(4)}</div></div>
+  </article>`).join('');
+function paintMascot(card, s) {
+  const [, draw, states, lines] = MASCOTS[+card.dataset.i];
+  card.querySelector('.stage-bg').style.backgroundColor = STAGE_BG[s];
+  card.querySelector('.stage-bg').innerHTML = `<svg viewBox="0 0 210 222" class="s${s}"><g class="m-anim">${draw(s)}</g></svg>`;
+  card.querySelector('.state').textContent = states[s];
+  card.querySelector('.line').textContent = lines[s];
+  card.querySelectorAll('.dots i').forEach((d, k) => d.classList.toggle('on', k <= s));
+}
+// Cada mascota recorre sus 4 estados, desfasadas para que no cambien todas a la vez
+document.querySelectorAll('.mascot').forEach((card, i) => {
+  let s = 0;
+  paintMascot(card, s);
+  if (!reduce) setTimeout(() => setInterval(() => paintMascot(card, (s = (s + 1) % 4)), 2600), i * 870);
+});
+
+// ---------- Ticker de equivalencias ----------
+const EQ = ['⚽ 12 canchas de fútbol', '🚌 108 micros en fila', '🏙️ 4,3 veces la Gran Torre Santiago', '🐌 Un caracol tardaría 15 días', '🏔️ 14 % del Everest', '🌲 0,13 % del camino a Puerto Montt', '📱 8.666 pantallas de celular', '🦒 236 cuellos de jirafa'];
+document.getElementById('ticker').innerHTML = [...EQ, ...EQ].map((t) => `<span>${t}</span>`).join('');
+
+// ---------- Logros (los mismos 32 de la app) ----------
+const MEDALS = [['👆','Primer toque',0.01],['✏️','Lápiz nuevo',0.19],['🎸','Guitarra completa',1],['🦒','Cuello de jirafa',5.5],['🚌','Bus de dos pisos',10],['🐋','Ballena azul',30],['🗽','Estatua de la Libertad',93],['⚽','Cancha completa',105],['🏙️','Gran Torre Santiago',300],['🗼','Torre Eiffel',330],['🌇','Burj Khalifa',828],['🦶','Kilómetro de pulgar',1000],['🌉','Puente Golden Gate',2700],['🗻','Monte Fuji',3800],['⛰️','Aconcagua',6960],['🏔️','Everest con el dedo',8849],['🤿','Fosa de las Marianas',10900],['🏊','Canal de la Mancha',33000],['🏃','Maratón del pulgar',42195],['🚀','Hasta el espacio',100000],['🌊','Santiago–Valpo',116000],['🚄','Londres–París',344000],['🚆','Madrid–Barcelona',620000],['🐚','Camino de Santiago',800000],['🌲','Rumbo a Puerto Montt',1030000],['🛣️','Ruta 66',3940000],['🦜','Río Amazonas',6400000],['🚂','Transiberiano',9289000],['🧱','Gran Muralla China',21196000],['🌎','Panamericana completa',30000000],['🌍','Vuelta al mundo',40075000],['🌕','Hasta la Luna',384400000]];
+const nf = (x, d = 1) => x.toLocaleString('es-CL', { maximumFractionDigits: d });
+const fmt = (m) => (m < 1 ? `${Math.round(m * 100)} cm` : m < 1000 ? `${nf(m, m < 10 ? 1 : 0)} m` : `${nf(m / 1000, m < 10000 ? 2 : 1)} km`);
+const medalsEl = document.getElementById('medals');
+medalsEl.innerHTML = MEDALS.map(([em, t, need], i) => `<div class="card medal off" data-i="${i}"><span class="em">🔒</span><b>${t}</b><span>${fmt(need)}</span></div>`).join('');
+
+// ---------- Esta página te mide ----------
+// Aproximación: en pantallas táctiles 1 px CSS ≈ 1/160 pulgada; en escritorio ≈ 1/96.
+const PX_PER_CM = (matchMedia('(pointer: coarse)').matches ? 160 : 96) / 2.54;
+let lastY = scrollY, meters = 0, unlocked = 0;
+const distEl = document.getElementById('pageDist'), toast = document.getElementById('toast'), pill = document.querySelector('.meter-pill');
+let toastTimer;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('on'), 2200);
+}
+addEventListener('scroll', () => {
+  meters += Math.abs(scrollY - lastY) / PX_PER_CM / 100;
+  lastY = scrollY;
+  distEl.textContent = fmt(meters);
+  while (unlocked < MEDALS.length && meters >= MEDALS[unlocked][2]) {
+    const [em, t] = MEDALS[unlocked];
+    const card = medalsEl.querySelector(`[data-i="${unlocked}"]`);
+    card.classList.remove('off');
+    card.querySelector('.em').textContent = em;
+    if (!reduce) card.animate([{ transform: 'scale(.85)' }, { transform: 'scale(1.06)', offset: .6 }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' });
+    showToast(`🏆 ¡Logro! ${em} ${t}`);
+    if (!reduce) { pill.classList.remove('wiggle'); void pill.offsetWidth; pill.classList.add('wiggle'); }
+    unlocked++;
+  }
+}, { passive: true });
+
+// ---------- Revelado al bajar ----------
+// Cada grupo entra en cascada (60 ms entre elementos, máximo 6 escalones para que nada espere de más)
+if ('IntersectionObserver' in window) {
+  const groups = [
+    ...document.querySelectorAll('section .kicker, section h2, section .lede'),
+    ...['.mascots', '.features', '.shots', '.medals', '.steps', '.privacy'].flatMap((sel) =>
+      [...document.querySelectorAll(`${sel} > *`)].map((el, i) => (el.style.setProperty('--d', `${Math.min(i, 6) * 60}ms`), el))),
+    ...document.querySelectorAll('.note'),
+  ];
+  const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+  }), { rootMargin: '0px 0px -8% 0px' });
+  groups.forEach((el) => { el.classList.add('reveal'); io.observe(el); });
+}
+
+// ---------- Versión del último release (API pública de GitHub) ----------
+fetch('https://api.github.com/repos/foxen2005/scrollometro/releases/latest')
+  .then((r) => (r.ok ? r.json() : null))
+  .then((j) => { if (j && j.tag_name) document.getElementById('ver').textContent = j.tag_name; })
+  .catch(() => {});
+</script>
+</body>
+</html>

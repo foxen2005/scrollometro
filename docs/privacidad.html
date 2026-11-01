@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacidad — Scrollómetro</title>
+<meta name="description" content="Política de privacidad de Scrollómetro: qué mide, qué no toca y dónde quedan tus datos.">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #fff4e4; --ink: #23192e; --muted: #5f5570; --lime: #c6f45e; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Baloo 2', system-ui, sans-serif; background: var(--bg); color: var(--ink); font-size: 18px; line-height: 1.6; padding: clamp(24px, 6vw, 64px) clamp(18px, 5vw, 48px); }
+  main { max-width: 720px; margin: 0 auto; }
+  a { color: inherit; }
+  .back { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none; margin-bottom: 24px; }
+  .back img { width: 34px; height: 34px; border-radius: 10px; border: 2px solid var(--ink); }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); line-height: 1.05; margin-bottom: 6px; }
+  .date { color: var(--muted); font-weight: 600; margin-bottom: 28px; }
+  h2 { font-size: 1.5rem; margin: 30px 0 8px; line-height: 1.15; }
+  p, li { color: #3c3247; }
+  ul { padding-left: 1.2em; display: grid; gap: 6px; }
+  code { background: #fff; border: 1.5px solid var(--ink); border-radius: 6px; padding: 0 6px; font-size: .9em; }
+  .box { background: #fff; border: 2.5px solid var(--ink); border-radius: 20px; box-shadow: 4px 4px 0 var(--ink); padding: 18px 20px; margin-top: 10px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="./"><img src="img/logo.png" alt="">Scrollómetro</a>
+  <h1>Privacidad</h1>
+  <p class="date">Última actualización: 31 de octubre de 2026</p>
+
+  <div class="box">
+    <p><b>En corto:</b> Scrollómetro ve <i>que</i> tu pantalla se mueve, no <i>qué</i> hay en ella. Todo queda en tu teléfono. La única conexión a internet es para buscar actualizaciones en GitHub, y no envía nada tuyo.</p>
+  </div>
+
+  <h2>Qué datos usa</h2>
+  <ul>
+    <li><b>Eventos de scroll</b> que Android entrega al servicio de Accesibilidad: el nombre del paquete de la app (por ejemplo <code>com.instagram.android</code>) y cuántos píxeles se movió la vista.</li>
+    <li><b>Cambios de pantalla</b>, solo para no sumar saltos falsos cuando pasas de una lista a otra.</li>
+    <li><b>Tus ajustes</b>: mascota, meta diaria, notificación y frases.</li>
+  </ul>
+
+  <h2>Qué NO hace</h2>
+  <ul>
+    <li>No lee textos, imágenes, videos, mensajes ni lo que escribes. El servicio se declara con <code>canRetrieveWindowContent="false"</code>, así que Android ni siquiera se lo entrega.</li>
+    <li>No toma capturas de pantalla ni graba nada.</li>
+    <li>No tiene cuentas, anuncios, analítica ni servidores propios.</li>
+    <li>No comparte ni vende datos: no hay datos que salgan del teléfono.</li>
+  </ul>
+
+  <h2>Dónde se guarda</h2>
+  <p>Los totales del día por app, el acumulado histórico y tus ajustes se guardan en el almacenamiento privado de la app en tu teléfono. Se borran al desinstalarla. «Reiniciar hoy» en Ajustes borra el día actual.</p>
+
+  <h2>Conexión a internet</h2>
+  <p>Al abrirse, la app consulta la API pública de GitHub (<code>api.github.com/repos/foxen2005/scrollometro/releases/latest</code>) para saber si hay versión nueva. Si aceptas actualizar, descarga el APK desde <code>github.com</code>. Esas solicitudes no incluyen ningún dato de tu uso; GitHub ve lo mismo que con cualquier visita (como tu IP), según <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement">su propia política</a>.</p>
+
+  <h2>Permisos</h2>
+  <ul>
+    <li><b>Accesibilidad</b>: para recibir los eventos de scroll. Lo apagas cuando quieras en Ajustes → Accesibilidad.</li>
+    <li><b>Notificaciones</b>: para la notificación fija con el total del día.</li>
+    <li><b>Internet</b>: solo para buscar y descargar actualizaciones desde GitHub.</li>
+    <li><b>Instalar apps</b>: para instalar sus propias actualizaciones; Android te pide confirmar cada una.</li>
+  </ul>
+
+  <h2>Código abierto</h2>
+  <p>Todo lo anterior se puede verificar en el código: <a href="https://github.com/foxen2005/scrollometro">github.com/foxen2005/scrollometro</a>.</p>
+
+  <h2>Contacto</h2>
+  <p>¿Dudas o encontraste algo? Abre un issue en el repositorio. Hecho en Chile por Digital Fox.</p>
+</main>
+</body>
+</html>
